@@ -112,7 +112,7 @@ const seoProps: SeoProps = {
       Langsung ke konten
     </a>
 
-    <AdBanner posisi="header_atas" className="hidden sm:block" client:idle />
+    <AdBanner posisi="header_atas" className="hidden sm:block" persistHeight client:idle />
     {/* Initial state is server-rendered (initialEvent/initialItems), so these
         don't need eager hydration — client:idle keeps their /api refetch off
         the critical load path. Header stays client:load (search/menu must be

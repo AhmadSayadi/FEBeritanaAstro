@@ -30,7 +30,9 @@
 
 @layer components {
   .container-main {
-    @apply mx-auto w-full max-w-container px-3 sm:px-10 lg:px-24;
+    /* Mobile uses a tight 8px gutter (was 12px) so content/images sit closer
+       to the screen edges and feel fuller; tablet/desktop gutters unchanged. */
+    @apply mx-auto w-full max-w-container px-2 sm:px-10 lg:px-24;
   }
 
   .badge-category {
