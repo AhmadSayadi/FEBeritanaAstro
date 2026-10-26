@@ -11,6 +11,7 @@ interface TrendingKeyword {
 
 export function TrendingBar({ initialData }: { initialData?: { keyword: string; slug: string; count?: number }[] }) {
   const [keywords, setKeywords] = useState<TrendingKeyword[]>(initialData || [])
+  const [loading, setLoading] = useState(!(initialData && initialData.length > 0))
 
   useEffect(() => {
     if (initialData && initialData.length > 0) return // Already have data from SSR
@@ -18,8 +19,13 @@ export function TrendingBar({ initialData }: { initialData?: { keyword: string; 
       .then(res => res.json())
       .then(data => setKeywords((data?.data || []).slice(0, 8)))
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [initialData])
 
+  // Reserve height while the first fetch is pending (prevents CLS).
+  if (!keywords.length && loading) {
+    return <div className="container-main py-2" aria-hidden="true"><div className="h-[44px] rounded-xl bg-gray-100 dark:bg-gray-800/40" /></div>
+  }
   if (!keywords.length) return null
 
   return (

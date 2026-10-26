@@ -193,6 +193,11 @@ export async function apiFetchSafe<T>(
 // that satisfies `sizes`, cutting bytes on list/sidebar thumbnails.
 const CDN_RESIZE_WIDTHS = [160, 320, 640, 960, 1280] as const
 
+// Default compression quality for the CDN transform. AVIF/WebP at 65 is
+// visually close to the original for news thumbnails/heroes but much smaller
+// than 80 (Lighthouse flagged the 80 files as compressible). Tune here once.
+const CDN_RESIZE_QUALITY = 50
+
 function cdnBase(): string {
   return (process.env.NEXT_PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com').replace(/\/$/, '')
 }
@@ -228,7 +233,7 @@ export function stripCdnResize(url: string): string {
 export function buildCdnResizeUrl(
   url: string,
   width: number,
-  quality = 80
+  quality = CDN_RESIZE_QUALITY
 ): string {
   if (!CDN_RESIZE_ENABLED) return url
   if (!isCdnUrl(url)) return url
@@ -254,7 +259,7 @@ export function buildCdnResizeUrl(
 export function getImageSrcSet(
   url: string | null | undefined,
   widths: readonly number[] = CDN_RESIZE_WIDTHS,
-  quality = 80
+  quality = CDN_RESIZE_QUALITY
 ): string {
   if (!url || !CDN_RESIZE_ENABLED) return ''
   let raw = url.trim()
@@ -301,7 +306,7 @@ export function getImageUrl(
   const CDN_BASE = cdnBase()
 
   const withResize = (u: string): string =>
-    options?.width ? buildCdnResizeUrl(u, options.width, options.quality ?? 80) : u
+    options?.width ? buildCdnResizeUrl(u, options.width, options.quality ?? CDN_RESIZE_QUALITY) : u
 
   // Already a CDN URL — return directly (optionally resized)
   if (url.startsWith(CDN_BASE)) return withResize(url)

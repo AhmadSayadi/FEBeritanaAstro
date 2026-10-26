@@ -15,6 +15,7 @@ interface Author {
 
 export function TopAuthorsSection({ initialData }: { initialData?: Author[] }) {
   const [authors, setAuthors] = useState<Author[]>(initialData || [])
+  const [loading, setLoading] = useState(!(initialData && initialData.length > 0))
 
   useEffect(() => {
     if (initialData && initialData.length > 0) return
@@ -22,8 +23,13 @@ export function TopAuthorsSection({ initialData }: { initialData?: Author[] }) {
       .then(res => res.json())
       .then(data => setAuthors(data?.data || []))
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [initialData])
 
+  // Reserve height while the first fetch is pending (prevents CLS).
+  if (!authors.length && loading) {
+    return <section className="container-main py-8" aria-hidden="true"><div className="h-[180px] rounded-xl bg-gray-100 dark:bg-gray-800/40" /></section>
+  }
   if (!authors.length) return null
 
   return (

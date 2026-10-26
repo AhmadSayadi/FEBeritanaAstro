@@ -14,6 +14,7 @@ interface SponsoredItem {
 
 export function SponsoredSection({ initialData }: { initialData?: SponsoredItem[] }) {
   const [items, setItems] = useState<SponsoredItem[]>(initialData || [])
+  const [loading, setLoading] = useState(!(initialData && initialData.length > 0))
 
   useEffect(() => {
     if (initialData && initialData.length > 0) return
@@ -21,8 +22,13 @@ export function SponsoredSection({ initialData }: { initialData?: SponsoredItem[
       .then(res => res.json())
       .then(data => setItems((data?.data || []).slice(0, 3)))
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [initialData])
 
+  // Reserve height while the first fetch is pending (prevents CLS).
+  if (!items.length && loading) {
+    return <section className="container-main py-8" aria-hidden="true"><div className="h-[280px] rounded-xl bg-gray-100 dark:bg-gray-800/40" /></section>
+  }
   if (!items.length) return null
 
   return (

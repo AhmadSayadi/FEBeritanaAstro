@@ -62,7 +62,10 @@ export function PollSection({ initialPoll }: { initialPoll?: Poll }) {
     scrollRef.current?.scrollBy({ left: dir === 'left' ? -340 : 340, behavior: 'smooth' })
   }
 
-  if (loading) return null
+  // Reserve height while the first fetch is pending (prevents CLS).
+  if (loading) {
+    return <section className="container-main py-8" aria-hidden="true"><div className="h-[240px] rounded-xl bg-gray-100 dark:bg-gray-800/40" /></section>
+  }
   if (!polls.length) return null
 
   return (

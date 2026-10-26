@@ -21,6 +21,10 @@ interface TrendingArticle {
 
 export function TrendingTodaySection({ initialData }: { initialData?: TrendingArticle[] }) {
   const [items, setItems] = useState<TrendingArticle[]>(initialData || [])
+  // `loading` is true only while the first client fetch is in flight (no SSR
+  // data). During that window we reserve the section's height so it doesn't pop
+  // in and shift the page (CLS). Once resolved empty, we return null (no gap).
+  const [loading, setLoading] = useState(!(initialData && initialData.length > 0))
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -29,8 +33,13 @@ export function TrendingTodaySection({ initialData }: { initialData?: TrendingAr
       .then(res => res.json())
       .then(data => setItems(data?.data || []))
       .catch(() => {})
+      .finally(() => setLoading(false))
   }, [initialData])
 
+  // Reserve height while the first fetch is pending (prevents CLS).
+  if (!items.length && loading) {
+    return <section className="container-main py-10" aria-hidden="true"><div className="h-[320px] rounded-2xl bg-gray-100 dark:bg-gray-800/40" /></section>
+  }
   if (!items.length) return null
 
   const scroll = (dir: 'left' | 'right') => {
