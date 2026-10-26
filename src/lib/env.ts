@@ -46,6 +46,16 @@ export const CDN_RESIZE_ENABLED = (() => {
   const v = env('NEXT_PUBLIC_CDN_RESIZE', 'true').toLowerCase()
   return v !== 'false' && v !== '0' && v !== ''
 })()
+// Feature toggles. Default OFF — set to 'true' to render again. Keeping the
+// components in the codebase but not mounting them removes their island JS and
+// their /api calls (AdBanner.js, LiveEventBadge.js + /api/live) from the page.
+const isOn = (key: string) => {
+  const v = env(key, '').toLowerCase()
+  return v === 'true' || v === '1'
+}
+export const ENABLE_ADS = isOn('NEXT_PUBLIC_ENABLE_ADS')
+export const ENABLE_LIVE_EVENT = isOn('NEXT_PUBLIC_ENABLE_LIVE_EVENT')
+
 export const REVALIDATE_SECRET = env('REVALIDATE_SECRET', '')
 export const INDEXNOW_KEY = env('INDEXNOW_KEY', '')
 export const GA_ID = env('NEXT_PUBLIC_GA_ID', '')

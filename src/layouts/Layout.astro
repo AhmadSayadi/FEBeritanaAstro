@@ -34,6 +34,8 @@ import {
   GOOGLE_VERIFICATION,
   BING_VERIFICATION,
   YANDEX_VERIFICATION,
+  ENABLE_ADS,
+  ENABLE_LIVE_EVENT,
 } from '@/lib/env'
 
 interface Props {
@@ -45,10 +47,12 @@ interface Props {
 
 const { seo = {}, lang = 'id' } = Astro.props
 
+// Skip the live-events fetch entirely when the badge is disabled — no point
+// paying the SSR request if we won't render it.
 const [config, breakingData, liveData] = await Promise.all([
   getSiteConfig(),
   fetchBreakingNews(),
-  fetchLiveEvents(),
+  ENABLE_LIVE_EVENT ? fetchLiveEvents() : Promise.resolve(null),
 ])
 
 const orgSchema = buildOrganizationSchema()
@@ -112,12 +116,16 @@ const seoProps: SeoProps = {
       Langsung ke konten
     </a>
 
-    <AdBanner posisi="header_atas" className="hidden sm:block" persistHeight client:idle />
+    {/* Ads + LiveEventBadge are gated behind feature flags (ENABLE_ADS /
+        ENABLE_LIVE_EVENT). When off, the islands aren't mounted at all, so
+        their JS chunks and /api calls never load. Flip the env to true to
+        bring them back without any code change. */}
+    {ENABLE_ADS && <AdBanner posisi="header_atas" className="hidden sm:block" client:idle />}
     {/* Initial state is server-rendered (initialEvent/initialItems), so these
         don't need eager hydration — client:idle keeps their /api refetch off
         the critical load path. Header stays client:load (search/menu must be
         interactive early). */}
-    <LiveEventBadge initialEvent={liveEvent} client:idle />
+    {ENABLE_LIVE_EVENT && <LiveEventBadge initialEvent={liveEvent} client:idle />}
     <Header client:load />
     <BreakingNewsBanner initialItems={breakingItems} client:idle />
 
@@ -125,10 +133,10 @@ const seoProps: SeoProps = {
       <slot />
     </main>
 
-    <AdBanner posisi="atas_footer" className="container-main my-4" client:visible />
+    {ENABLE_ADS && <AdBanner posisi="atas_footer" className="container-main my-4" client:visible />}
     <FooterAstro />
 
-    <AdBanner posisi="mobile_bawah" className="fixed bottom-0 left-0 right-0 z-40 sm:hidden" client:idle />
+    {ENABLE_ADS && <AdBanner posisi="mobile_bawah" className="fixed bottom-0 left-0 right-0 z-40 sm:hidden" client:idle />}
 
     <BackToTop client:idle />
     <BottomNav client:idle />

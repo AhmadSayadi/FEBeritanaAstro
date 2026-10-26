@@ -18,13 +18,6 @@ interface AdBannerProps {
   posisi: string
   category?: string
   className?: string
-  /**
-   * Keep the reserved height even when no ad resolves. Use for above-the-fold
-   * slots (e.g. header_atas sits right above <main>): collapsing an empty slot
-   * from its reserved height to 0 shifts the whole page down and spikes CLS.
-   * A stable, always-present banner slot is standard and avoids that shift.
-   */
-  persistHeight?: boolean
 }
 
 // Reserved height per ad position so the slot doesn't collapse-then-pop when the
@@ -40,7 +33,7 @@ const RESERVED_MIN_HEIGHT: Record<string, number> = {
   kategori_atas: 90,
 }
 
-export function AdBanner({ posisi, category, className = '', persistHeight = false }: AdBannerProps) {
+export function AdBanner({ posisi, category, className = '' }: AdBannerProps) {
   const [ad, setAd] = useState<AdData | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [tracked, setTracked] = useState(false)
@@ -103,11 +96,10 @@ export function AdBanner({ posisi, category, className = '', persistHeight = fal
 
   // Before the async ad resolves, hold a reserved-height placeholder so content
   // below doesn't jump when the ad appears (CLS). Once loaded with no ad, render
-  // nothing (no permanent empty gap) — UNLESS persistHeight keeps the slot for
-  // above-the-fold positions, where collapsing would shift <main> and spike CLS.
+  // nothing (no permanent empty gap / visible blank box).
   if (!ad) {
+    if (loaded) return null
     const minHeight = RESERVED_MIN_HEIGHT[posisi] ?? 0
-    if (loaded && !persistHeight) return null
     if (!minHeight) return null
     return <div className={className} style={{ minHeight }} aria-hidden="true" />
   }
