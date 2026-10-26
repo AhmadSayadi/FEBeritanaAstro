@@ -19,6 +19,9 @@ pnpm-debug.log*
 .env.local
 .env.production
 .env.*.local
+# wrangler secret bulk upload file + local dev vars — contain real secrets
+env.json
+.dev.vars
 
 # macOS / editors
 .DS_Store

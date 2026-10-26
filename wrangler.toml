@@ -24,10 +24,11 @@
 
 name = "beritana"
 
-# >= 2025-04-01 so Cloudflare auto-enables `nodejs_compat_populate_process_env`:
-# this is what copies the Worker's dashboard environment variables/secrets
-# (API_SECRET_KEY, API_BASE_URL, etc.) into `process.env` at runtime. With an
-# earlier date, process.env is empty at runtime and every backend call goes out
-# without the API key, so the homepage/article data comes back empty.
+# `nodejs_compat_populate_process_env` is what copies the Worker's dashboard
+# environment variables/secrets (API_SECRET_KEY, API_BASE_URL, ...) into
+# `process.env` at RUNTIME. Without it, process.env is empty at runtime and
+# every backend call goes out without the API key, so the homepage/article data
+# comes back empty (the "stuck skeleton" bug). It's auto-enabled for dates
+# >= 2025-04-01, but we also list it explicitly so it's guaranteed regardless.
 compatibility_date = "2025-06-01"
-compatibility_flags = ["nodejs_compat"]
+compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
