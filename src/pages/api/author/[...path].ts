@@ -13,7 +13,7 @@ async function proxy(request: Request, path: string | undefined, method: string)
   const authHeader = request.headers.get('Authorization')
   const contentType = request.headers.get('Content-Type') || ''
 
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
   if (authHeader) headers['Authorization'] = authHeader
 
   const fetchOptions: RequestInit = { method, headers }
@@ -29,7 +29,7 @@ async function proxy(request: Request, path: string | undefined, method: string)
   }
 
   try {
-    const res = await fetch(`${API_BASE}/author/${pathStr}`, fetchOptions)
+    const res = await fetch(`${API_BASE()}/author/${pathStr}`, fetchOptions)
     const data = await res.json()
     return jsonResponse(data, { status: res.status })
   } catch {

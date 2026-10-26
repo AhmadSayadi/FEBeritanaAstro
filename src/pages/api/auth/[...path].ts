@@ -11,13 +11,13 @@ async function proxy(request: Request, path: string | undefined, method: string)
   const pathStr = path || ''
   const authHeader = request.headers.get('Authorization')
 
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
   const hasBody = method === 'POST' || method === 'PUT'
   if (hasBody) headers['Content-Type'] = 'application/json'
   if (authHeader) headers['Authorization'] = authHeader
 
   try {
-    const res = await fetch(`${API_BASE}/auth/${pathStr}`, {
+    const res = await fetch(`${API_BASE()}/auth/${pathStr}`, {
       method,
       headers,
       body: hasBody ? await request.text() : undefined,

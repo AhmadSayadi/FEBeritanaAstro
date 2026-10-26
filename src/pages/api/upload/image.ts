@@ -15,9 +15,9 @@ export const POST: APIRoute = async ({ request }) => {
       else outgoingForm.append(key, value)
     }
 
-    const res = await fetch(`${API_BASE}/upload/image`, {
+    const res = await fetch(`${API_BASE()}/upload/image`, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'X-API-Key': API_KEY, Authorization: authHeader },
+      headers: { Accept: 'application/json', 'X-API-Key': API_KEY(), Authorization: authHeader },
       body: outgoingForm,
     })
     const data = await res.json().catch(() => ({}))

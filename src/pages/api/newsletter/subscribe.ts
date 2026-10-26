@@ -17,9 +17,9 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   try {
-    const res = await fetch(`${API_BASE}/newsletter/subscribe`, {
+    const res = await fetch(`${API_BASE()}/newsletter/subscribe`, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-API-Key': API_KEY() },
       body,
     })
     const data = await res.json().catch(() => ({}))

@@ -5,8 +5,8 @@ export const prerender = false
 
 export const GET: APIRoute = async ({ params }) => {
   try {
-    const res = await fetch(`${API_BASE}/articles/${params.slug}/comments`, {
-      headers: { Accept: 'application/json', 'X-API-Key': API_KEY },
+    const res = await fetch(`${API_BASE()}/articles/${params.slug}/comments`, {
+      headers: { Accept: 'application/json', 'X-API-Key': API_KEY() },
       cache: 'no-store',
     })
     if (!res.ok) return jsonResponse({ data: [] })

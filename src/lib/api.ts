@@ -6,8 +6,12 @@
 
 import { env, CDN_RESIZE_ENABLED } from './env'
 
-const API_BASE = env('API_BASE_URL', 'https://cms.beritana.com/api')
-const API_KEY = env('API_SECRET_KEY', '')
+// Read per-call, NOT frozen at module load. On Cloudflare Workers the runtime
+// env (process.env, populated from dashboard vars) may not be ready at module
+// init, so capturing these as top-level consts could freeze them to '' and send
+// every backend request without the API key. Functions read the current value.
+const API_BASE = () => env('API_BASE_URL', 'https://cms.beritana.com/api')
+const API_KEY = () => env('API_SECRET_KEY', '')
 
 /**
  * Public API fetch (no auth token needed, only API key)
@@ -16,7 +20,7 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {}
 ): Promise<T> {
-  const url = `${API_BASE}${path}`
+  const url = `${API_BASE()}${path}`
 
   const res = await fetch(url, {
     // Default 8s timeout so a stalled CMS can't hang SSR / an API proxy route
@@ -26,7 +30,7 @@ export async function apiFetch<T>(
     headers: {
       'Accept': 'application/json',
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      'X-API-Key': API_KEY(),
       ...(options.headers || {}),
     },
   })
@@ -103,7 +107,7 @@ async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
-      'X-API-Key': API_KEY,
+      'X-API-Key': API_KEY(),
     },
     signal: AbortSignal.timeout(timeoutMs),
   })
@@ -122,7 +126,7 @@ export async function apiFetchCached<T>(
   path: string,
   revalidateSeconds: number = 60
 ): Promise<T> {
-  const url = `${API_BASE}${path}`
+  const url = `${API_BASE()}${path}`
 
   if (revalidateSeconds <= 0) {
     return fetchJson<T>(url, 5000)

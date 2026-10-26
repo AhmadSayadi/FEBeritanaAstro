@@ -7,9 +7,9 @@ export const prerender = false
 export const POST: APIRoute = async ({ params, request }) => {
   const body = await request.text()
   try {
-    await fetch(`${API_BASE}/ads/${params.id}/track`, {
+    await fetch(`${API_BASE()}/ads/${params.id}/track`, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-API-Key': API_KEY },
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-API-Key': API_KEY() },
       body,
     })
   } catch {

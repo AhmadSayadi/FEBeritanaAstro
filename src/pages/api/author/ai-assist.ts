@@ -9,12 +9,12 @@ export const POST: APIRoute = async ({ request }) => {
   if (!authHeader) return jsonResponse({ success: false, message: 'Login dulu' }, { status: 401 })
   try {
     const body = await request.text()
-    const res = await fetch(`${API_BASE}/author/ai-assist`, {
+    const res = await fetch(`${API_BASE()}/author/ai-assist`, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-API-Key': API_KEY,
+        'X-API-Key': API_KEY(),
         Authorization: authHeader,
       },
       body,

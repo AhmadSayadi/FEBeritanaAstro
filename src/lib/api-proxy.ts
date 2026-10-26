@@ -6,10 +6,14 @@
  * present). These helpers reproduce that behaviour exactly so each Astro
  * endpoint file stays tiny and consistent.
  */
-import { API_BASE_URL, API_SECRET_KEY } from './env'
+import { env } from './env'
 
-const API_BASE = API_BASE_URL || 'https://cms.beritana.com/api'
-const API_KEY = API_SECRET_KEY || ''
+// Read per-call (not frozen at module load): on Cloudflare Workers the runtime
+// env may not be populated when this module first loads, so capturing these as
+// consts could freeze them to '' and send every proxied request without the
+// API key.
+const API_BASE = () => env('API_BASE_URL', 'https://cms.beritana.com/api')
+const API_KEY = () => env('API_SECRET_KEY', '')
 
 function jsonResponse(data: unknown, init?: ResponseInit): Response {
   return new Response(JSON.stringify(data), {
@@ -33,12 +37,12 @@ export async function proxyGet(
   } = {}
 ): Promise<Response> {
   const { fallback = { data: null }, cacheControl, forwardAuth } = opts
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
   const auth = forwardAuth?.headers.get('Authorization')
   if (auth) headers['Authorization'] = auth
 
   try {
-    const res = await fetch(`${API_BASE}${backendPath}`, { headers })
+    const res = await fetch(`${API_BASE()}${backendPath}`, { headers })
     if (!res.ok) return jsonResponse(fallback)
     const data = await res.json()
     return jsonResponse(data, cacheControl ? { headers: { 'Cache-Control': cacheControl } } : undefined)
@@ -77,12 +81,12 @@ export async function proxyMethod(
   const hasBody = method !== 'DELETE'
   const body = hasBody ? await request.text() : undefined
 
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
   if (hasBody) headers['Content-Type'] = 'application/json'
   if (authHeader) headers['Authorization'] = authHeader
 
   try {
-    const res = await fetch(`${API_BASE}${backendPath}`, { method, headers, body })
+    const res = await fetch(`${API_BASE()}${backendPath}`, { method, headers, body })
     const data = await res.json().catch(() => ({}))
     return jsonResponse(data, { status: res.status })
   } catch {

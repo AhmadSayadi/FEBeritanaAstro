@@ -24,5 +24,10 @@
 
 name = "beritana"
 
-compatibility_date = "2024-11-01"
+# >= 2025-04-01 so Cloudflare auto-enables `nodejs_compat_populate_process_env`:
+# this is what copies the Worker's dashboard environment variables/secrets
+# (API_SECRET_KEY, API_BASE_URL, etc.) into `process.env` at runtime. With an
+# earlier date, process.env is empty at runtime and every backend call goes out
+# without the API key, so the homepage/article data comes back empty.
+compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]

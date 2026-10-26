@@ -7,8 +7,8 @@ export const GET: APIRoute = async ({ params, request }) => {
   const authHeader = request.headers.get('Authorization')
   if (!authHeader) return jsonResponse({ is_bookmarked: false })
   try {
-    const res = await fetch(`${API_BASE}/articles/${params.slug}/bookmark-status`, {
-      headers: { Accept: 'application/json', 'X-API-Key': API_KEY, Authorization: authHeader },
+    const res = await fetch(`${API_BASE()}/articles/${params.slug}/bookmark-status`, {
+      headers: { Accept: 'application/json', 'X-API-Key': API_KEY(), Authorization: authHeader },
       cache: 'no-store',
     })
     const data = await res.json().catch(() => ({ is_bookmarked: false }))

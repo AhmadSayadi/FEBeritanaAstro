@@ -13,8 +13,8 @@ export const GET: APIRoute = async ({ params, url }) => {
   const page = url.searchParams.get('page') || '1'
   try {
     const res = await fetch(
-      `${API_BASE}/authors/${encodeURIComponent(slug)}?page=${encodeURIComponent(page)}`,
-      { headers: { Accept: 'application/json', 'X-API-Key': API_KEY }, signal: AbortSignal.timeout(8000) }
+      `${API_BASE()}/authors/${encodeURIComponent(slug)}?page=${encodeURIComponent(page)}`,
+      { headers: { Accept: 'application/json', 'X-API-Key': API_KEY() }, signal: AbortSignal.timeout(8000) }
     )
     if (!res.ok) return jsonResponse({ data: [], meta: null }, { status: res.status })
     const json = await res.json()
