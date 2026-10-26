@@ -1,0 +1,19 @@
+---
+/**
+ * Berita index — Astro equivalent of Next's src/app/berita/page.tsx.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { BeritaIndexPage } from '@/components/pageviews/BeritaIndexPage'
+import { SITE_URL_RAW } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = {
+  title: 'Indeks Berita',
+  description:
+    'Kumpulan berita terbaru dari Beritana. Baca berita terkini seputar nasional, internasional, teknologi, olahraga, dan hiburan.',
+  canonical: '/berita',
+}
+---
+<Layout seo={seo}>
+  <BeritaIndexPage client:load />
+</Layout>

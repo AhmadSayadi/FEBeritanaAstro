@@ -1,0 +1,79 @@
+---
+/**
+ * Static CMS page — Astro equivalent of Next's src/app/pages/[slug]/page.tsx.
+ * Renders backend HTML content + WebPage JSON-LD. Same markup/classes.
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { apiFetchSafe } from '@/lib/api'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { EmbedScripts } from '@/components/article/EmbedScripts'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import { sanitizeContent } from '@/lib/sanitize'
+import type { SeoProps } from '@/lib/seo'
+
+interface PageData {
+  title: string
+  slug: string
+  content: string
+  meta_title?: string
+  meta_description?: string
+  published_at?: string
+}
+
+const { slug } = Astro.params
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const result = await apiFetchSafe<{ data: PageData }>(`/pages/${slug}`, 600)
+const page = result?.data
+
+// Page not found → serve the real 404 (HTTP 404), not a soft-404 with status 200.
+if (!page) {
+  return Astro.rewrite('/404')
+}
+
+// Sanitize backend HTML before injecting (defense-in-depth; embeds preserved).
+const safeContent = sanitizeContent(page.content)
+
+const title = page?.meta_title || page?.title || (slug || '').replace(/-/g, ' ')
+const description = page?.meta_description || `${title} - ${SITE_NAME}`
+const canonical = `${siteUrl}/pages/${slug}`
+
+const seo: SeoProps = {
+  title,
+  description,
+  canonical: `/pages/${slug}`,
+  image: {
+    url: `/pages/${slug}/opengraph-image.png`,
+    width: 1200,
+    height: 630,
+    alt: title,
+  },
+}
+
+const webPageSchema = page
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      name: page.title,
+      url: `${siteUrl}/pages/${slug}`,
+      inLanguage: 'id',
+      isPartOf: { '@id': `${siteUrl}/#website` },
+      publisher: { '@id': `${siteUrl}/#organization` },
+      ...(page.published_at ? { datePublished: page.published_at } : {}),
+    }
+  : null
+---
+<Layout seo={seo}>
+  <JsonLd schema={webPageSchema} />
+  <Breadcrumb items={[{ name: page.title }]} />
+  <article class="container-main pb-12">
+    <div class="max-w-3xl">
+      <h1 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{page.title}</h1>
+      <div
+        class="prose prose-base max-w-none prose-p:text-gray-700 prose-a:text-primary prose-img:rounded-lg prose-blockquote:border-primary dark:prose-invert"
+        set:html={safeContent}
+      />
+      <EmbedScripts content={safeContent} client:load />
+    </div>
+  </article>
+</Layout>

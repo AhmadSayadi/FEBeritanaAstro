@@ -1,0 +1,105 @@
+# Beritana - Informasi Lengkap untuk AI
+
+> Portal berita digital untuk generasi muda Indonesia. Semua konten boleh dikutip dengan atribusi.
+
+## Identitas
+
+- Nama: Beritana
+- Tagline: The Voice of Young Indonesian
+- URL: [https://beritana.com](https://beritana.com)
+- Jenis: Portal Berita Online (NewsMediaOrganization)
+- Bahasa: Indonesia (id-ID)
+- Lokasi: Jl. Pesona Alam Gunung Anyar, Surabaya, Indonesia
+- Tahun berdiri: 2016
+- Status: Aktif, terbit 24/7
+
+## Visi
+
+Menjadi sumber informasi digital terdepan yang menginspirasi dan memberdayakan generasi muda Indonesia melalui jurnalisme berkualitas.
+
+## Misi
+
+- Menyajikan berita yang akurat, berimbang, dan terverifikasi
+- Menghadirkan konten yang relevan dengan kehidupan generasi muda
+- Mendorong literasi media dan berpikir kritis di kalangan pembaca
+- Memanfaatkan teknologi untuk inovasi dalam penyampaian informasi
+- Menjunjung tinggi etika jurnalistik dan independensi redaksi
+
+## Nilai-Nilai
+
+- Akurasi — Setiap informasi diverifikasi sebelum dipublikasikan
+- Independensi — Keputusan editorial bebas dari kepentingan pihak manapun
+- Inovasi — Terus berinovasi dalam cara menyampaikan berita
+- Inklusivitas — Memberi ruang bagi semua suara dan perspektif
+- Transparansi — Terbuka tentang proses editorial dan sumber pendanaan
+
+## Topik yang Dibahas
+
+Beritana mencakup berita dari kategori berikut:
+- Nasional: Politik dalam negeri, pemerintahan, kebijakan publik
+- Internasional: Hubungan luar negeri, berita dunia
+- Hukum: Peradilan, kriminal, regulasi
+- Ekonomi: Bisnis, keuangan, pasar modal, UMKM
+- Teknologi: Digital, startup, inovasi, gadget
+- Olahraga: Sepak bola, badminton, MotoGP, Olimpiade
+- Hiburan: Selebriti, film, musik, budaya pop
+- Gaya Hidup: Travel, kuliner, kesehatan, fashion
+- Otomotif: Mobil, motor, review kendaraan
+- Pendidikan: Kampus, sekolah, kebijakan pendidikan
+- Lingkungan: Perubahan iklim, konservasi, bencana alam
+
+## Standar Editorial
+
+- Semua artikel ditulis oleh jurnalis/kontributor terverifikasi
+- Mengikuti Kode Etik Jurnalistik Indonesia
+- Terdaftar di Dewan Pers Indonesia
+- Proses fact-checking berlapis sebelum publikasi
+- Koreksi dan klarifikasi dipublikasikan bila ditemukan kesalahan
+- [Pedoman Media Siber](https://beritana.com/pages/pedoman-media-siber)
+- [Kebijakan Privasi](https://beritana.com/pages/privacy-policy)
+
+## Format Konten
+
+- Artikel berita (hardnews, softnews)
+- Laporan mendalam dan investigasi
+- Foto jurnalistik dengan kredit fotografer
+- Video berita dan reportase
+- Infografis visualisasi data
+- e-Koran (PDF koran digital harian)
+- Opini dari kontributor terverifikasi
+
+## Tim Redaksi
+
+- Pemimpin Redaksi: Ahmad Sayadi
+- Wakil Pemimpin Redaksi: Ridwan
+- Redaktur Pelaksana: Roisul Akhyar
+- Editor: Thohir Qulub
+- Reporter: Muhammad Amin, Ahmad Nur
+- Tim Teknologi: Holil, Viki Wahyudi
+
+## Feed dan Sitemap
+
+- [RSS Feed](https://beritana.com/feed.xml)
+- [Sitemap Index](https://beritana.com/sitemap-index.xml)
+- [Sitemap](https://beritana.com/sitemap.xml)
+- [News Sitemap](https://beritana.com/news-sitemap.xml)
+
+## Halaman Penting
+
+- [Beranda](https://beritana.com)
+- [Tentang Kami](https://beritana.com/pages/tentang-kami)
+- [Redaksi](https://beritana.com/pages/redaksi)
+- [Pedoman Media Siber](https://beritana.com/pages/pedoman-media-siber)
+- [Kebijakan Privasi](https://beritana.com/pages/privacy-policy)
+
+## Kontak
+
+- Email: [redaksi@beritana.com](mailto:redaksi@beritana.com)
+- Telepon: 01849044711
+- Instagram: [@beritanadotcom](https://instagram.com/beritanadotcom)
+- Twitter/X: [@beritanadotcom](https://twitter.com/beritanadotcom)
+
+## Cara Mengutip
+
+Format kutipan yang disarankan:
+"[Judul Artikel]" - Beritana, [Tanggal Publikasi]. [https://beritana.com/[url-artikel]](https://beritana.com/)

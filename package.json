@@ -1,0 +1,68 @@
+{
+  "name": "beritana-news",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "start:server": "node ./dist/server/entry.mjs",
+    "build:passenger": "cross-env DEPLOY_TARGET=passenger astro build",
+    "build:vercel": "cross-env DEPLOY_TARGET=vercel astro build",
+    "build:cloudflare": "cross-env DEPLOY_TARGET=cloudflare astro build",
+    "start:passenger": "node server.js"
+  },
+  "dependencies": {
+    "@astrojs/node": "^9.5.5",
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/tailwind": "^6.0.2",
+    "@tailwindcss/typography": "^0.5.19",
+    "sanitize-html": "^2.18.1",
+    "@tiptap/extension-document": "^3.23.6",
+    "@tiptap/extension-dropcursor": "^3.26.0",
+    "@tiptap/extension-gapcursor": "^3.26.0",
+    "@tiptap/extension-hard-break": "^3.23.6",
+    "@tiptap/extension-horizontal-rule": "^3.26.0",
+    "@tiptap/extension-image": "^3.23.6",
+    "@tiptap/extension-link": "^3.23.6",
+    "@tiptap/extension-list": "^3.23.6",
+    "@tiptap/extension-paragraph": "^3.23.6",
+    "@tiptap/extension-placeholder": "^3.26.0",
+    "@tiptap/extension-text": "^3.23.6",
+    "@tiptap/extension-text-align": "^3.23.6",
+    "@tiptap/extension-underline": "^3.23.6",
+    "@tiptap/extensions": "^3.23.6",
+    "@tiptap/pm": "^3.23.6",
+    "@tiptap/react": "^3.26.0",
+    "@tiptap/starter-kit": "^3.23.6",
+    "@vercel/og": "^0.6.8",
+    "astro": "~5.14.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@types/sanitize-html": "^2.16.2",
+    "cross-env": "^7.0.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@astrojs/cloudflare": "^12.6.13",
+    "@astrojs/vercel": "^8.2.11"
+  },
+  "browserslist": [
+    "chrome >= 111",
+    "edge >= 111",
+    "firefox >= 111",
+    "safari >= 16.4",
+    "ios_saf >= 16.4",
+    "not dead"
+  ]
+}

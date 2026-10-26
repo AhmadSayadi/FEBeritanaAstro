@@ -1,0 +1,519 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Font — Plus Jakarta Sans.
+ * In the Next.js app this was self-hosted via next/font and exposed as the
+ * `--font-inter` CSS variable. Here the font is loaded via a <link> in
+ * BaseHead.astro; we bind the same CSS variable so every `font-sans`
+ * (var(--font-inter)) usage renders identically.
+ */
+:root {
+  --font-inter: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply text-gray-800 antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold leading-tight;
+  }
+}
+
+@layer components {
+  .container-main {
+    @apply mx-auto w-full max-w-container px-3 sm:px-10 lg:px-24;
+  }
+
+  .badge-category {
+    @apply inline-block rounded bg-primary-dark px-2 py-0.5 text-xs font-semibold text-white;
+  }
+
+  .btn-primary {
+    @apply rounded bg-primary-dark px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-primary;
+  }
+
+  .pill-tab {
+    @apply rounded-full border border-gray-300 px-4 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:border-primary hover:text-primary;
+  }
+
+  .pill-tab-active {
+    @apply rounded-full bg-primary-dark px-4 py-1.5 text-sm font-medium text-white;
+  }
+
+  /* Badge kategori dengan warna dinamis dari backend.
+     text-shadow gelap menjaga teks putih tetap kontras (WCAG) di atas
+     warna terang apa pun (cyan, hijau, kuning, dll). */
+  .cat-badge {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+  }
+}
+
+@layer utilities {
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}
+
+/* Dark mode */
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+.dark header {
+  @apply bg-gray-900 border-gray-800;
+}
+.dark .bg-white,
+.dark .dark\:bg-dark {
+  background-color: #1a1a2e;
+}
+.dark .text-gray-900 {
+  @apply text-gray-100;
+}
+.dark .text-gray-700 {
+  @apply text-gray-300;
+}
+.dark .text-gray-600 {
+  @apply text-gray-400;
+}
+.dark .text-gray-500 {
+  @apply text-gray-400;
+}
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  @apply border-gray-700;
+}
+.dark .border-b {
+  border-color: rgba(255,255,255,0.1);
+}
+.dark .shadow-sm {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+.dark .shadow-md {
+  box-shadow: 0 4px 6px rgba(0,0,0,0.4);
+}
+.dark .hover\:bg-gray-50:hover {
+  background-color: rgba(255,255,255,0.05);
+}
+.dark .bg-gray-50 {
+  background-color: rgba(255,255,255,0.05);
+}
+.dark .rounded-lg.border {
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* Article font size variable */
+:root {
+  --article-font-size: 16px;
+}
+.prose p,
+.prose li {
+  font-size: var(--article-font-size);
+}
+
+/* Print styles */
+@media print {
+  header, footer, aside, nav,
+  .btn-primary, .badge-category,
+  [aria-label="Kembali ke atas"],
+  [aria-label="Cookie consent"] {
+    display: none !important;
+  }
+
+  .container-main {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  article {
+    max-width: 100% !important;
+  }
+
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  body {
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
+
+/* Tiptap image resizer */
+.image-resizer {
+  margin: 8px auto;
+  position: relative;
+  overflow: visible;
+  display: block;
+  max-width: 100%;
+}
+.image-resizer img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  border: 2px solid transparent;
+  border-radius: 4px;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+.image-resizer img:hover {
+  border-color: #93c5fd;
+}
+.image-resizer img.ProseMirror-selectednode {
+  border-color: #E53935;
+}
+.image-resizer[data-align="left"] {
+  justify-content: flex-start;
+}
+.image-resizer[data-align="center"] {
+  justify-content: center;
+}
+.image-resizer[data-align="right"] {
+  justify-content: flex-end;
+}
+/* Drag handles on images — CSS only, shown via pseudo-elements */
+.image-resizer img {
+  position: relative;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+}
+.image-resizer:hover img {
+  cursor: default;
+}
+.image-resizer {
+  position: relative;
+}
+.image-resizer::before,
+.image-resizer::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 48px;
+  background: rgba(0,0,0,0.7);
+  border-radius: 4px;
+  cursor: col-resize;
+  z-index: 10;
+  border: 1px solid rgba(255,255,255,0.5);
+  opacity: 0;
+  transition: opacity 0.15s;
+  pointer-events: none;
+}
+.image-resizer::before {
+  left: 8px;
+}
+.image-resizer::after {
+  right: 8px;
+}
+.image-resizer:hover::before,
+.image-resizer:hover::after {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Tiptap editor list styles */
+.ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+.ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+.ProseMirror li {
+  margin: 0.25em 0;
+}
+.ProseMirror blockquote {
+  border-left: 3px solid #E53935;
+  padding-left: 1em;
+  margin: 1em 0;
+  color: #4b5563;
+  font-style: italic;
+}
+.ProseMirror h1 { font-size: 2em; font-weight: bold; margin: 0.5em 0; }
+.ProseMirror h2 { font-size: 1.5em; font-weight: bold; margin: 0.5em 0; }
+.ProseMirror h3 { font-size: 1.25em; font-weight: bold; margin: 0.5em 0; }
+.ProseMirror p { margin: 0.5em 0; }
+.ProseMirror code {
+  background: #f3f4f6;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+.ProseMirror pre {
+  background: #1f2937;
+  color: #f9fafb;
+  padding: 1em;
+  border-radius: 8px;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+.ProseMirror hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.5em 0;
+}
+
+/* Dark mode inputs */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: #1f2937;
+  border-color: #374151;
+  color: #f3f4f6;
+}
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #6b7280;
+}
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #E53935;
+}
+
+/* Reading Mode */
+body.reading-mode header,
+body.reading-mode footer,
+body.reading-mode aside,
+body.reading-mode .bottom-nav {
+  display: none !important;
+}
+body.reading-mode main .container-main {
+  max-width: 700px !important;
+  padding: 2rem 1.5rem !important;
+}
+body.reading-mode main article .prose {
+  font-size: 1.15rem !important;
+  line-height: 1.9 !important;
+}
+
+/* Bottom nav spacing */
+@media (max-width: 1023px) {
+  main {
+    padding-bottom: 70px;
+  }
+}
+
+/* Notion-style editor */
+.notion-editor .ProseMirror {
+  min-height: 450px;
+  position: relative;
+}
+.notion-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+.notion-editor .ProseMirror .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: #9ca3af;
+  pointer-events: none;
+  height: 0;
+}
+.notion-editor .ProseMirror > *:first-child {
+  margin-top: 0;
+}
+.notion-editor .ProseMirror:focus {
+  outline: none;
+}
+/* Floating + button on empty paragraphs */
+.notion-editor .ProseMirror p.is-empty:not(:first-child) {
+  position: relative;
+}
+.notion-editor .ProseMirror p.is-empty:not(:first-child)::after {
+  content: '+';
+  position: absolute;
+  left: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+  color: #9ca3af;
+  font-size: 16px;
+  font-weight: 300;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.notion-editor .ProseMirror p.is-empty:not(:first-child):hover::after,
+.notion-editor .ProseMirror p.is-empty:not(:first-child).has-focus::after {
+  opacity: 1;
+}
+/* Block hover highlight */
+.notion-editor .ProseMirror > *:hover {
+  border-radius: 4px;
+}
+/* Selected node highlight */
+.notion-editor .ProseMirror .ProseMirror-selectednode {
+  outline: 2px solid #3b82f6;
+  border-radius: 4px;
+}
+/* Task list in editor */
+.notion-editor .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+.notion-editor .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.notion-editor .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
+  margin-top: 4px;
+  accent-color: #E53935;
+}
+/* Table in editor */
+.notion-editor .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0;
+}
+.notion-editor .ProseMirror th,
+.notion-editor .ProseMirror td {
+  border: 1px solid #e5e7eb;
+  padding: 8px 12px;
+  text-align: left;
+  min-width: 80px;
+}
+.notion-editor .ProseMirror th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+/* Article content figure + figcaption (images with captions) */
+.prose figure {
+  margin: 1.5rem 0;
+}
+.prose figure img {
+  width: 100%;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+.prose figcaption {
+  margin-top: 0.5rem;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b7280;
+  text-align: left;
+}
+.dark .prose figcaption {
+  color: #9ca3af;
+}
+
+/* ── Responsive article content (CMS embeds) ──────────────── */
+/* Prevent horizontal overflow on mobile from embedded media */
+.prose img,
+.prose video {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive iframes (YouTube, Twitter, Instagram, TikTok, maps) */
+.prose iframe {
+  max-width: 100%;
+}
+
+/* Bare iframes with fixed width/height (e.g. YouTube width="560") */
+.prose iframe[width][height]:not([class]) {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+
+/* Tables from CMS — allow horizontal scroll instead of breaking layout */
+.prose table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Long words / URLs should wrap, not overflow */
+.prose p,
+.prose li,
+.prose a,
+.prose h1,
+.prose h2,
+.prose h3 {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Preformatted code blocks scroll horizontally */
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+/* Social embed wrappers center + constrain */
+.prose .instagram-media,
+.prose .twitter-tweet,
+.prose .tiktok-embed,
+.prose blockquote[class*="instagram"],
+.prose blockquote[class*="tiktok"] {
+  max-width: 100% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}

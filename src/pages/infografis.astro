@@ -1,0 +1,41 @@
+---
+/**
+ * Infografis list — Astro equivalent of Next's src/app/infografis/page.tsx.
+ * Initial data fetched server-side; the list view (load-more) hydrates.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { apiFetchCached } from '@/lib/api'
+import { InfografisListPage } from '@/components/pageviews/InfografisListPage'
+import { SITE_URL_RAW } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+interface InfografisItem {
+  id: number
+  title: string
+  slug: string
+  thumbnail_url: string
+  published_at: string
+  views?: number
+  category?: { id?: number; name?: string; slug?: string; color?: string }
+}
+
+const seo: SeoProps = {
+  title: 'Infografis',
+  ogTitle: 'Infografis - Beritana',
+  description:
+    'Kumpulan infografis informatif yang menyajikan data dan informasi kompleks dalam visual yang mudah dipahami.',
+  ogDescription: 'Kumpulan infografis informatif dari Beritana.',
+  canonical: '/infografis',
+}
+
+let initialData: InfografisItem[] = []
+try {
+  const res = await apiFetchCached<{ data: InfografisItem[] }>('/photo-news?category=infografis&limit=24', 300)
+  initialData = res.data || []
+} catch {
+  initialData = []
+}
+---
+<Layout seo={seo}>
+  <InfografisListPage initialData={initialData} client:load />
+</Layout>

@@ -1,0 +1,87 @@
+# Beritana
+
+> Portal berita digital untuk generasi muda Indonesia yang menyajikan informasi terkini, akurat, dan terpercaya.
+
+## Tentang Beritana
+
+Beritana adalah portal berita digital dengan tagline "The Voice of Young Indonesian". Didirikan pada tahun 2016, Beritana hadir dengan semangat menghadirkan media berita yang segar, modern, dan dekat dengan pembaca muda. Berawal dari tim kecil yang passionate terhadap jurnalisme digital, Beritana terus berkembang menjadi salah satu portal berita yang dipercaya oleh pembaca di seluruh Indonesia.
+
+## Visi
+
+Menjadi sumber informasi digital terdepan yang menginspirasi dan memberdayakan generasi muda Indonesia melalui jurnalisme berkualitas.
+
+## Misi
+
+- Menyajikan berita yang akurat, berimbang, dan terverifikasi
+- Menghadirkan konten yang relevan dengan kehidupan generasi muda
+- Mendorong literasi media dan berpikir kritis di kalangan pembaca
+- Memanfaatkan teknologi untuk inovasi dalam penyampaian informasi
+- Menjunjung tinggi etika jurnalistik dan independensi redaksi
+
+## Nilai-Nilai
+
+- Akurasi — Setiap informasi diverifikasi sebelum dipublikasikan
+- Independensi — Keputusan editorial bebas dari kepentingan pihak manapun
+- Inovasi — Terus berinovasi dalam cara menyampaikan berita
+- Inklusivitas — Memberi ruang bagi semua suara dan perspektif
+- Transparansi — Terbuka tentang proses editorial dan sumber pendanaan
+
+## Jenis Konten
+
+- Berita terkini (hard news) dari seluruh Indonesia dan dunia
+- Laporan mendalam (in-depth reporting) dan investigasi
+- Foto jurnalistik dan galeri foto berita
+- Video berita dan reportase
+- Infografis dan visualisasi data
+- e-Koran digital harian
+- Opini dan analisis dari kontributor terverifikasi
+
+## Kategori Utama
+
+Nasional, Internasional, Politik, Hukum, Ekonomi, Teknologi, Olahraga, Hiburan, Gaya Hidup, Otomotif, Properti, Pendidikan, Kesehatan, Lingkungan, Travel, Kuliner
+
+## Kredibilitas
+
+- Semua artikel ditulis oleh jurnalis terverifikasi
+- Proses editorial terstruktur dengan editor dan fact-checker
+- Terdaftar di Dewan Pers Indonesia
+- Mematuhi Kode Etik Jurnalistik Indonesia
+- Sumber berita selalu dicantumkan
+
+## Tim Redaksi
+
+- Pemimpin Redaksi: Ahmad Sayadi
+- Wakil Pemimpin Redaksi: Ridwan
+- Redaktur Pelaksana: Roisul Akhyar
+- Editor: Thohir Qulub
+- Reporter: Muhammad Amin, Ahmad Nur
+- Tim Teknologi: Holil, Viki Wahyudi
+
+## Informasi Teknis
+
+- URL: [https://beritana.com](https://beritana.com)
+- Bahasa: Indonesia (id)
+- Format konten: HTML, [RSS Feed](https://beritana.com/feed.xml), [Sitemap](https://beritana.com/sitemap.xml)
+- Update: Real-time, 24/7
+- Lokasi redaksi: Jl. Pesona Alam Gunung Anyar, Surabaya, Indonesia
+
+## Kontak
+
+- Email: [redaksi@beritana.com](mailto:redaksi@beritana.com)
+- Telepon: 01849044711
+- Instagram: [@beritanadotcom](https://instagram.com/beritanadotcom)
+- Twitter/X: [@beritanadotcom](https://twitter.com/beritanadotcom)
+
+## Halaman Penting
+
+- [Beranda](https://beritana.com)
+- [Tentang Kami](https://beritana.com/pages/tentang-kami)
+- [Redaksi](https://beritana.com/pages/redaksi)
+- [Pedoman Media Siber](https://beritana.com/pages/pedoman-media-siber)
+- [Kebijakan Privasi](https://beritana.com/pages/privacy-policy)
+
+## Pengutipan
+
+Saat mengutip artikel Beritana, gunakan format:
+- Sumber: Beritana ([https://beritana.com](https://beritana.com))
+- Atau: [Judul Artikel], Beritana, [tanggal publikasi]

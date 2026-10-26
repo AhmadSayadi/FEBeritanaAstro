@@ -1,0 +1,79 @@
+---
+/**
+ * BaseHead — static <head> content shared by every page.
+ * Reproduces the <head> from the old Next.js RootLayout (src/app/layout.tsx):
+ *   charset, viewport, theme-color, icons, manifest, preconnects, dns-prefetch,
+ *   RSS alternate, author link, fb/telegram meta, robots, and the font.
+ */
+---
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#E53935" />
+<meta name="generator" content={Astro.generator} />
+
+{/* Icons & PWA manifest — Next injected these from RootLayout `icons`/`manifest`. */}
+<link rel="icon" href="/images/favicon.ico" sizes="any" />
+<link rel="icon" type="image/svg+xml" href="/images/favicon.svg" />
+<link rel="icon" type="image/png" sizes="96x96" href="/images/favicon-96x96.png" />
+<link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
+
+{/*
+  Font — Plus Jakarta Sans. Mirrors the old next/font config
+  (`Plus_Jakarta_Sans({ subsets: ['latin'], display: 'swap' })`):
+    - normal style only (next/font defaults to style ['normal']; it never
+      loaded italic — the old request's `1,200..800` italic axis was an
+      unintended regression, so it's dropped here),
+    - weights the UI actually uses (400/500/600/700/800 via Tailwind
+      font-normal..extrabold),
+    - display=swap to avoid invisible text.
+  The stylesheet is loaded non-render-blocking (preload + onload swap to
+  `stylesheet`), with a <noscript> fallback, so the font no longer blocks
+  first paint / LCP.
+*/}
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  rel="preload"
+  as="style"
+  href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'"
+/>
+<noscript>
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  />
+</noscript>
+
+{/* CDN gambar (Cloudflare R2) — preconnect untuk mempercepat LCP */}
+<link rel="preconnect" href="https://cdn.beritana.com" crossorigin="anonymous" />
+<link rel="dns-prefetch" href="https://cdn.beritana.com" />
+<link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+<link rel="dns-prefetch" href="https://www.google-analytics.com" />
+<link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
+<link rel="dns-prefetch" href="https://tpc.googlesyndication.com" />
+<link rel="alternate" type="application/rss+xml" title="RSS Feed" href="/feed.xml" />
+<link rel="author" href="/pages/redaksi" />
+<meta property="fb:app_id" content="277221139310700" />
+<meta property="fb:pages" content="811652378856691" />
+<meta name="telegram:channel" content="@beritanacom" />
+{/* NOTE: the `robots` meta is emitted by Seo.astro (index, follow,
+    max-image-preview:large, ...) — not hardcoded here, so there is exactly
+    one robots tag per page. */}
+
+{/*
+  Dark-mode bootstrap — applies the saved theme BEFORE first paint.
+  Needed more here than in the old SPA: in an MPA every navigation is a full
+  document load, so without this a dark-mode reader would see a white flash on
+  every single page. Mirrors the logic in DarkModeToggle (localStorage 'theme').
+*/}
+<script is:inline>
+  (function () {
+    try {
+      if (localStorage.getItem('theme') === 'dark') {
+        document.documentElement.classList.add('dark')
+      }
+    } catch (e) {}
+  })()
+</script>

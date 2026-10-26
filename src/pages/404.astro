@@ -1,0 +1,76 @@
+---
+/**
+ * 404 — Astro equivalent of Next's src/app/not-found.tsx.
+ * Same markup/classes; suggests popular articles. noindex,follow.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { fetchPopular } from '@/lib/data'
+import { getImageUrl } from '@/lib/api'
+import type { SeoProps } from '@/lib/seo'
+
+const popularRes = await fetchPopular()
+const popular = popularRes?.data?.slice(0, 4) || []
+
+const seo: SeoProps = {
+  title: 'Halaman Tidak Ditemukan',
+  noindex: true,
+  noCanonical: true,
+}
+
+Astro.response.status = 404
+---
+<Layout seo={seo}>
+  <div class="container-main py-12">
+    <div class="flex flex-col items-center justify-center text-center">
+      <h1 class="text-7xl font-bold text-primary">404</h1>
+      <h2 class="mt-4 text-2xl font-bold text-gray-900 dark:text-white">Halaman Tidak Ditemukan</h2>
+      <p class="mt-2 max-w-md text-gray-600 dark:text-gray-400">
+        Maaf, halaman yang Anda cari tidak tersedia atau telah dipindahkan.
+      </p>
+      <div class="mt-6 flex gap-3">
+        <a href="/" class="btn-primary">Kembali ke Beranda</a>
+        <a
+          href="/pencarian"
+          class="rounded border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-primary hover:text-primary dark:border-gray-600 dark:text-gray-300"
+          >Cari Berita</a
+        >
+      </div>
+    </div>
+
+    {popular.length > 0 && (
+      <div class="mx-auto mt-12 max-w-4xl">
+        <h3 class="mb-5 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+          <span class="inline-block h-5 w-1 bg-primary" aria-hidden="true"></span>
+          Berita Populer
+        </h3>
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          {popular.map((article) => (
+            <a
+              href={`/${article.category?.slug || 'berita'}/${article.slug}`}
+              class="flex gap-3 rounded-lg border border-gray-100 p-3 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
+            >
+              <div class="relative h-16 w-24 shrink-0 overflow-hidden rounded-lg">
+                <img
+                  src={getImageUrl(article.thumbnail_url)}
+                  alt={article.thumbnail_alt || article.title}
+                  class="h-full w-full object-cover"
+                  loading="lazy"
+                  width="96"
+                  height="64"
+                />
+              </div>
+              <div class="min-w-0 flex-1">
+                <h4 class="line-clamp-2 text-sm font-bold text-gray-900 dark:text-white">{article.title}</h4>
+                {article.category && (
+                  <span class="mt-1 inline-block text-[11px] font-medium" style={`color: ${article.category.color || '#E53935'}`}>
+                    {article.category.name}
+                  </span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>

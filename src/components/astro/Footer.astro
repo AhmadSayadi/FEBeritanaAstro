@@ -1,0 +1,11 @@
+---
+/**
+ * Footer wrapper — awaits site config (as the old async server Footer did)
+ * and renders the presentational FooterView as static server HTML (no island).
+ */
+import { getSiteConfig } from '@/lib/site-config'
+import { FooterView } from '@/components/layout/Footer'
+
+const config = await getSiteConfig()
+---
+<FooterView config={config} />

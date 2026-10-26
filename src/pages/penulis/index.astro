@@ -1,0 +1,11 @@
+---
+/**
+ * /penulis (index) → 308 to /leaderboard.
+ *
+ * The author breadcrumb and the ProfilePage BreadcrumbList JSON-LD both point
+ * at /penulis, but there is no author-index page (there wasn't one in the old
+ * Next app either — a latent 404). The closest real "authors directory" is the
+ * author leaderboard, so send visitors and crawlers there instead of a 404.
+ */
+return Astro.redirect('/leaderboard', 308)
+---

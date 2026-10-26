@@ -1,0 +1,65 @@
+---
+/**
+ * Category page at its canonical public URL: /{slug}.
+ *
+ * Astro route priority ensures static single-segment routes (e.g. /pencarian,
+ * /masuk, /daftar, /tulis, /leaderboard, /ekoran, /infografis, /stories,
+ * /traktir, and the index "/") win over this catch-all, so only category slugs
+ * reach here. Equivalent to Next's src/app/kategori/[slug]/page.tsx reached via
+ * the clean-URL middleware rewrite.
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { fetchCategoryArticles } from '@/lib/data'
+import { buildBreadcrumbSchema, buildCollectionPageSchema } from '@/lib/schema'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import { buildCategorySeo } from '@/lib/seo'
+import { CategoryPageView } from '@/components/category/CategoryPageView'
+
+const { slug } = Astro.params
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const data = await fetchCategoryArticles(slug!, 1, 12)
+
+if (!data || !data.category) {
+  return Astro.rewrite('/404')
+}
+
+const categoryName = data.category.name || slug!
+const categoryColor = data.category.color || '#E53935'
+const categoryDesc = data.category.meta_description || `Berita terbaru kategori ${categoryName}`
+const articles = data.data || []
+const totalPages = data.meta?.last_page || 1
+const canonical = `${siteUrl}/${slug}`
+
+const seo = buildCategorySeo({
+  slug: slug!,
+  name: categoryName,
+  description: categoryDesc,
+  siteName: SITE_NAME,
+})
+
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: 'Beranda', url: siteUrl },
+  { name: categoryName, url: `${siteUrl}/${slug}` },
+])
+const collectionSchema = buildCollectionPageSchema({
+  name: `Kanal ${categoryName}`,
+  description: categoryDesc,
+  url: `${siteUrl}/${slug}`,
+  articles,
+})
+---
+<Layout seo={seo}>
+  <JsonLd schema={breadcrumbSchema} />
+  <JsonLd schema={collectionSchema} />
+
+  <CategoryPageView
+    slug={slug!}
+    categoryName={categoryName}
+    categoryColor={categoryColor}
+    categoryDesc={categoryDesc}
+    articles={articles}
+    totalPages={totalPages}
+    client:load
+  />
+</Layout>

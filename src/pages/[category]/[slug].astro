@@ -1,0 +1,92 @@
+---
+/**
+ * Article detail at its canonical public URL: /{category}/{slug}.
+ *
+ * Astro route priority ensures static two-segment routes (e.g. /video/[slug],
+ * /tag/[slug], /profile/[slug], /news-sitemap/[category]) win over this
+ * catch-all, so only real article URLs reach here. Equivalent to Next's
+ * src/app/berita/[slug]/page.tsx reached via the clean-URL middleware rewrite.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { fetchArticleFull } from '@/lib/data'
+import { getImageUrl } from '@/lib/api'
+import { buildArticleSeo } from '@/lib/seo'
+import { buildNewsArticleSchema, buildBreadcrumbSchema, buildFaqSchema } from '@/lib/schema'
+import { SITE_URL_RAW } from '@/lib/env'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { ArticleCore } from '@/components/article/ArticleCore'
+import { ArticleMoreGrid } from '@/components/article/ArticleTail'
+import ArticleSidebar from '@/components/astro/ArticleSidebar.astro'
+import { AdBanner } from '@/components/ads/AdBanner'
+import { sanitizeContent } from '@/lib/sanitize'
+
+const { slug } = Astro.params
+const data = await fetchArticleFull(slug!)
+
+if (!data?.article) {
+  return Astro.rewrite('/404')
+}
+
+const { article } = data
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+
+// Sanitize author-authored HTML on the server before it reaches the client
+// island (external, verified-but-untrusted authors → stored-XSS vector).
+// Social embeds (YouTube/IG/X/TikTok/FB) are preserved via the allowlist.
+article.content = sanitizeContent(article.content)
+
+// Canonical/SEO MUST always render even if JSON-LD construction fails,
+// otherwise Google reports "Duplicate without user-selected canonical".
+const seo = buildArticleSeo(article)
+
+// Build JSON-LD defensively — a failure here must never drop the canonical.
+let articleSchema: object | null = null
+let breadcrumbSchema: object | null = null
+let faqSchema: object | null = null
+try {
+  articleSchema = buildNewsArticleSchema(article)
+  breadcrumbSchema = buildBreadcrumbSchema([
+    { name: 'Beranda', url: siteUrl },
+    { name: article.category?.name || 'Berita', url: `${siteUrl}/${article.category?.slug || 'berita'}` },
+  ])
+  faqSchema = article.faqs && article.faqs.length > 0 ? buildFaqSchema(article.faqs) : null
+} catch (e) {
+  console.error('[article] JSON-LD build failed (canonical still emitted):', e)
+}
+
+const heroImageUrl = getImageUrl(article.thumbnail_url, { width: 1200 })
+---
+<Layout seo={seo}>
+  <Fragment slot="head">
+    {heroImageUrl && !heroImageUrl.startsWith('data:') && (
+      <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" />
+    )}
+  </Fragment>
+
+  <JsonLd schema={[articleSchema, breadcrumbSchema, faqSchema]} />
+
+  {/* Breadcrumb — static server HTML (no JS). */}
+  <Breadcrumb
+    items={[{ name: article.category?.name || 'Berita', href: `/${article.category?.slug || 'berita'}` }]}
+  />
+
+  <div class="container-main pb-12">
+    <div class="flex gap-8">
+      {/* Interactive article column. client:visible (not load) so the content
+          HTML paints immediately for LCP/SEO and the hydration JS runs only
+          once the column is in view — it's the top of the page so that's
+          near-instant, but it no longer competes with the initial load. */}
+      <ArticleCore article={article} related={data.related} siteUrl={siteUrl} client:visible />
+
+      {/* Sidebar — static server HTML (.astro); only the ad units are islands. */}
+      <ArticleSidebar article={article} popular={data.popular} latest={data.latest}>
+        <AdBanner posisi="artikel_sidebar" category={article.category?.slug || ''} client:visible />
+        <AdBanner posisi="sidebar_tetap" category={article.category?.slug || ''} client:visible />
+      </ArticleSidebar>
+    </div>
+
+    {/* "Berita Lainnya" grid — static server HTML (no JS). */}
+    <ArticleMoreGrid latest={data.latest} />
+  </div>
+</Layout>

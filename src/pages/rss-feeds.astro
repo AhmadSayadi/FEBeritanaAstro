@@ -1,0 +1,62 @@
+---
+/**
+ * RSS feeds directory — Astro equivalent of Next's src/app/rss-feeds/page.tsx.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { fetchCategories } from '@/lib/data'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const siteName = SITE_NAME || 'Beritana'
+
+const seo: SeoProps = {
+  title: 'RSS Feeds',
+  description: `Daftar lengkap RSS feed ${siteName} — feed utama dan feed per kategori untuk berlangganan berita terbaru.`,
+  canonical: '/rss-feeds',
+}
+
+const categories = await fetchCategories()
+const rows: { type: string; name: string; url: string }[] = [
+  { type: 'Utama', name: 'Semua Berita', url: `${siteUrl}/feed.xml` },
+  ...categories.filter((c) => c.slug).map((c) => ({ type: 'Kategori', name: c.name, url: `${siteUrl}/rss/category/${c.slug}` })),
+]
+---
+<Layout seo={seo}>
+  <Breadcrumb items={[{ name: 'RSS Feeds' }]} />
+  <section class="container-main py-8">
+    <h1 class="mb-2 text-center text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">RSS Feeds</h1>
+    <p class="mx-auto mb-4 max-w-2xl text-center text-sm text-gray-600 dark:text-gray-400">
+      Berlangganan berita terbaru {siteName} lewat RSS. Salin URL di bawah ke aplikasi pembaca RSS favorit Anda (Feedly, Inoreader, dan lainnya).
+    </p>
+    <p class="mx-auto mb-8 max-w-2xl text-center text-sm text-gray-600 dark:text-gray-400">
+      Ingin berlangganan semua kategori sekaligus? Unduh{' '}
+      <a href={`${siteUrl}/rss/category`} class="font-semibold text-primary-dark underline hover:text-primary dark:text-primary" target="_blank" rel="noopener noreferrer">file OPML</a>{' '}
+      lalu impor ke aplikasi pembaca RSS Anda.
+    </p>
+
+    <div class="mx-auto max-w-3xl overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-primary-dark text-left text-white">
+            <th class="px-4 py-3 font-semibold">Tipe</th>
+            <th class="px-4 py-3 font-semibold">Nama</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr class={i % 2 === 1 ? 'bg-gray-50 dark:bg-gray-800/50' : ''}>
+              <td class="px-4 py-3 align-top text-gray-500 dark:text-gray-400">{row.type}</td>
+              <td class="px-4 py-3">
+                <span class="font-semibold text-gray-900 dark:text-white">{row.name}</span>
+                <span class="mx-1 text-gray-400">|</span>
+                <a href={row.url} class="break-all text-primary-dark underline hover:text-primary dark:text-primary" target="_blank" rel="noopener noreferrer">{row.url}</a>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</Layout>

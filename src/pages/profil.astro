@@ -1,0 +1,13 @@
+---
+/**
+ * My profile — Astro equivalent of Next's src/app/profil/page.tsx. noindex.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { ProfilPage } from '@/components/pageviews/ProfilPage'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = { title: 'Profil Saya', noindex: true, nofollow: true }
+---
+<Layout seo={seo}>
+  <ProfilPage client:load />
+</Layout>

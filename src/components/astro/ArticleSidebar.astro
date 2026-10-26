@@ -1,0 +1,106 @@
+---
+/**
+ * Article sticky sidebar — pure static server HTML (Terpopuler / Terbaru /
+ * TagsCloud) rendered as an .astro component so the ad units can be composed
+ * as small client islands via the default slot. Zero JS except the ads.
+ *
+ * Markup/classes identical to the original ArticlePageView <aside>.
+ */
+import { getImageUrl } from '@/lib/api'
+import { TagsCloud } from '@/components/article/TagsCloud'
+import type { Article } from '@/lib/types'
+
+interface Props {
+  article: Article
+  popular: Article[]
+  latest: Article[]
+}
+
+const { article, popular, latest } = Astro.props
+
+// Identical wording to the original ArticlePageView sidebar ("... yang lalu").
+function formatRelativeTime(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  if (diffHours < 1) return 'Baru saja'
+  if (diffHours < 24) return `${diffHours} jam yang lalu`
+  if (diffDays === 1) return '1 hari yang lalu'
+  return `${diffDays} hari yang lalu`
+}
+---
+<aside class="hidden w-80 shrink-0 lg:block">
+  <div class="sticky top-24 space-y-8">
+    {popular && popular.length > 0 && (
+      <div>
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+          <span class="inline-block h-5 w-1 bg-primary" aria-hidden="true"></span>
+          Terpopuler
+        </h3>
+        <div class="space-y-4">
+          {popular.slice(0, 5).map((a, idx) => (
+            <article class="flex gap-3">
+              <span class="shrink-0 text-2xl font-bold text-primary">{String(idx + 1).padStart(2, '0')}</span>
+              <div class="min-w-0 flex-1">
+                <a href={`/${a.category?.slug || 'nasional'}/${a.slug}`} aria-label={`Baca: ${a.title}`}>
+                  <h4 class="line-clamp-2 text-sm font-bold text-gray-900 hover:text-primary dark:text-white">{a.title}</h4>
+                </a>
+                <div class="mt-1 flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+                  <time datetime={a.published_at}>{formatRelativeTime(a.published_at)}</time>
+                  {a.views && (
+                    <span class="flex items-center gap-1">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {a.views > 1000 ? `${(a.views / 1000).toFixed(1)}k` : a.views}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <a href={`/${a.category?.slug || 'nasional'}/${a.slug}`} class="shrink-0">
+                <div class="relative h-16 w-16 overflow-hidden rounded">
+                  <img src={getImageUrl(a.thumbnail_url, { width: 128 })} alt={a.thumbnail_alt || a.title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                </div>
+              </a>
+            </article>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {latest && latest.length > 0 && (
+      <div>
+        <h3 class="mb-4 flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-white">
+          <span class="inline-block h-5 w-1 bg-primary" aria-hidden="true"></span>
+          Terbaru
+        </h3>
+        <div class="space-y-3">
+          {latest.slice(0, 5).map((a) => (
+            <article class="flex gap-3">
+              <a href={`/${a.category?.slug || 'nasional'}/${a.slug}`} class="shrink-0">
+                <div class="relative h-14 w-14 overflow-hidden rounded">
+                  <img src={getImageUrl(a.thumbnail_url, { width: 112 })} alt={a.thumbnail_alt || a.title} class="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+                </div>
+              </a>
+              <div class="min-w-0 flex-1">
+                <a href={`/${a.category?.slug || 'nasional'}/${a.slug}`} aria-label={`Baca: ${a.title}`}>
+                  <h4 class="line-clamp-2 text-sm font-semibold text-gray-900 hover:text-primary dark:text-white">{a.title}</h4>
+                </a>
+                <time datetime={a.published_at} class="mt-0.5 block text-xs text-gray-500 dark:text-gray-400">{formatRelativeTime(a.published_at)}</time>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {article.tags && article.tags.length > 0 && <TagsCloud tags={article.tags} />}
+
+    {/* Ad islands injected by the page via the default slot */}
+    <slot />
+  </div>
+</aside>
+---

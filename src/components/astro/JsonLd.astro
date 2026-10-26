@@ -1,0 +1,26 @@
+---
+/**
+ * JsonLd — emits a schema.org block as server-rendered JSON-LD.
+ *
+ * Replaces the hand-written `<script type="application/ld+json" set:html={...}>`
+ * that was repeated across pages. Accepts a single schema or an array, and
+ * renders nothing for null/undefined so pages can pass a conditionally-built
+ * schema without guarding at the call site.
+ *
+ * The schema objects themselves come from `src/lib/schema.ts` (framework-
+ * agnostic pure builders) and are always rendered on the server, so structured
+ * data is present in the initial HTML with no JavaScript.
+ */
+interface Props {
+  schema?: object | object[] | null
+}
+
+const { schema } = Astro.props
+
+const blocks = (Array.isArray(schema) ? schema : [schema]).filter(
+  (s): s is object => Boolean(s)
+)
+---
+{blocks.map((block) => (
+  <script type="application/ld+json" set:html={JSON.stringify(block)} />
+))}

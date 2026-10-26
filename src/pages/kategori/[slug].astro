@@ -1,0 +1,10 @@
+---
+/**
+ * Legacy/internal category path: /kategori/{slug}.
+ *
+ * The canonical public URL is /{slug}. This path 301-redirects there to
+ * consolidate SEO signals and avoid duplicate content.
+ */
+const { slug } = Astro.params
+return Astro.redirect(`/${slug}`, 301)
+---

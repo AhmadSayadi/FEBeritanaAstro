@@ -1,0 +1,25 @@
+---
+/**
+ * e-Koran list — Astro equivalent of Next's src/app/ekoran/page.tsx.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { EkoranListPage } from '@/components/pageviews/EkoranListPage'
+import { SITE_URL_RAW } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = {
+  title: 'e-Koran Digital',
+  ogTitle: 'e-Koran Digital - Beritana',
+  description: 'Koleksi lengkap koran digital harian. Baca edisi terbaru dan arsip e-Koran.',
+  canonical: '/ekoran',
+  image: {
+    url: '/ekoran/opengraph-image.png',
+    width: 1200,
+    height: 630,
+    alt: 'e-Koran Digital Beritana',
+  },
+}
+---
+<Layout seo={seo}>
+  <EkoranListPage client:load />
+</Layout>

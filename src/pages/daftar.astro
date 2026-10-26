@@ -1,0 +1,27 @@
+---
+/**
+ * Register — Astro equivalent of Next's src/app/daftar/page.tsx. noindex.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { RegisterForm } from '@/components/pageviews/RegisterForm'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = { title: 'Daftar', noindex: true, nofollow: true }
+---
+<Layout seo={seo}>
+  <section class="container-main flex min-h-[70vh] items-center justify-center py-12">
+    <div class="w-full max-w-md">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold text-gray-900">Daftar Akun</h1>
+        <p class="mt-2 text-sm text-gray-600">Buat akun untuk pengalaman membaca yang lebih baik</p>
+      </div>
+
+      <RegisterForm client:load />
+
+      <p class="mt-6 text-center text-sm text-gray-600">
+        Sudah punya akun?{' '}
+        <a href="/masuk" class="font-medium text-primary hover:underline">Masuk</a>
+      </p>
+    </div>
+  </section>
+</Layout>

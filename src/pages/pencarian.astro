@@ -1,0 +1,101 @@
+---
+/**
+ * Search page — Astro equivalent of Next's src/app/pencarian/page.tsx.
+ * noindex,follow. Static markup + ArticleCard results (server-rendered).
+ */
+import Layout from '@/layouts/Layout.astro'
+import { fetchSearch } from '@/lib/data'
+import { ArticleCard } from '@/components/article/ArticleCard'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { SITE_URL_RAW } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const query = Astro.url.searchParams.get('q') || ''
+const page = parseInt(Astro.url.searchParams.get('page') || '1', 10)
+
+const result = query ? await fetchSearch(query, page) : null
+const articles = result?.data || []
+const meta = result?.meta
+
+const seo: SeoProps = {
+  title: 'Pencarian',
+  ogTitle: 'Pencarian - Beritana',
+  description: 'Cari berita terbaru di Beritana.',
+  canonical: '/pencarian',
+  image: {
+    url: '/pencarian/opengraph-image.png',
+    width: 1200,
+    height: 630,
+    alt: 'Pencarian Beritana',
+  },
+  noindex: true,
+}
+---
+<Layout seo={seo}>
+  <Breadcrumb items={[{ name: query ? `Pencarian: ${query}` : 'Pencarian' }]} />
+  <section class="container-main py-8">
+    <h1 class="mb-6 text-2xl font-bold text-gray-900 dark:text-white">Pencarian</h1>
+
+    <form action="/pencarian" method="get" class="mb-8">
+      <div class="flex gap-2">
+        <label for="search-input" class="sr-only">Cari berita</label>
+        <input
+          id="search-input"
+          type="search"
+          name="q"
+          value={query}
+          aria-label="Cari berita"
+          placeholder="Cari berita..."
+          class="flex-1 rounded border border-gray-300 px-4 py-3 text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        />
+        <button type="submit" class="btn-primary px-6">Cari</button>
+      </div>
+    </form>
+
+    {query && (
+      <>
+        <p class="mb-6 text-gray-600 dark:text-gray-400">
+          {articles.length > 0
+            ? `Ditemukan ${meta?.total || articles.length} hasil untuk "${query}"`
+            : `Tidak ada hasil untuk "${query}"`}
+        </p>
+
+        {articles.length > 0 ? (
+          <>
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {articles.map((article) => (
+                <ArticleCard article={article} size="medium" />
+              ))}
+            </div>
+
+            {meta && meta.last_page > 1 && (
+              <div class="mt-8 flex justify-center gap-2">
+                {page > 1 && (
+                  <a
+                    href={`/pencarian?q=${encodeURIComponent(query)}&page=${page - 1}`}
+                    class="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                    >Sebelumnya</a
+                  >
+                )}
+                <span class="rounded bg-primary px-4 py-2 text-sm text-white">{page} / {meta.last_page}</span>
+                {page < meta.last_page && (
+                  <a
+                    href={`/pencarian?q=${encodeURIComponent(query)}&page=${page + 1}`}
+                    class="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-800"
+                    >Selanjutnya</a
+                  >
+                )}
+              </div>
+            )}
+          </>
+        ) : (
+          <div class="rounded-lg border border-gray-200 p-8 text-center dark:border-gray-700">
+            <p class="text-lg text-gray-600 dark:text-gray-400">Tidak ada artikel yang ditemukan.</p>
+            <p class="mt-2 text-sm text-gray-500">Coba gunakan kata kunci yang berbeda.</p>
+          </div>
+        )}
+      </>
+    )}
+  </section>
+</Layout>

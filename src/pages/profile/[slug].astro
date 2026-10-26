@@ -1,0 +1,139 @@
+---
+/**
+ * Author profile — Astro equivalent of Next's src/app/profile/[slug]/page.tsx.
+ * Emits Person + ProfilePage + Breadcrumb JSON-LD server-side; the interactive
+ * profile view (tabs, load-more, owner actions) hydrates as an island.
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { fetchAuthorProfile } from '@/lib/data'
+import { buildPersonSchema, buildBreadcrumbSchema } from '@/lib/schema'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { AuthorProfilePage } from '@/components/pageviews/AuthorProfilePage'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+import type { Article } from '@/lib/types'
+
+const { slug } = Astro.params
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+
+let result
+try {
+  result = await fetchAuthorProfile(slug!)
+} catch {
+  result = null
+}
+
+const titleCase = (s: string) => s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+const a = result?.data
+
+const authorName = a?.name || titleCase(slug || '')
+const role = a?.role ? ` · ${a.role}` : ''
+const metaTitle = `${authorName}${role} - Penulis ${SITE_NAME}`
+const metaDesc =
+  a?.bio || `Profil dan kumpulan artikel oleh ${authorName} di ${SITE_NAME}. Baca tulisan terbaru dari ${authorName}.`
+const canonical = `${siteUrl}/profile/${slug}`
+const twitterHandle =
+  (a?.social?.twitter || '').replace(/^https?:\/\/(www\.)?(twitter|x)\.com\//i, '@').split('/')[0] || undefined
+
+const seo: SeoProps = {
+  title: metaTitle,
+  description: metaDesc,
+  keywords: [authorName, a?.role, 'penulis', 'jurnalis', SITE_NAME].filter(Boolean).join(', '),
+  authors: [{ name: authorName, url: `/profile/${slug}` }],
+  canonical: `/profile/${slug}`,
+  ogType: 'profile',
+  twitterCreator: twitterHandle,
+  image: {
+    url: `/profile/${slug}/opengraph-image.png`,
+    width: 1200,
+    height: 630,
+    alt: authorName,
+  },
+}
+
+// Build the author view-model + schema only when data is present.
+let author: Parameters<typeof AuthorProfilePage>[0]['author'] | null = null
+let articles: Article[] = []
+let articlesMeta: { current_page: number; last_page: number; per_page: number; total: number } | null = null
+let profilePageSchema: object | null = null
+let breadcrumbSchema: object | null = null
+
+if (a) {
+  articles =
+    result!.articles?.data ||
+    (a as unknown as { articles?: { data?: Article[] } })?.articles?.data ||
+    []
+  articlesMeta =
+    result!.articles?.meta ||
+    (a as unknown as { articles?: { meta?: typeof articlesMeta } })?.articles?.meta ||
+    null
+
+  // Email lives inside `social` (the AuthorProfilePage view-model has no
+  // top-level `email`); keep it separately for the Person JSON-LD.
+  const authorEmail = a.social?.email || ''
+
+  author = {
+    name: a.name || '',
+    slug: a.slug || slug!,
+    avatar_url: a.avatar_url || '',
+    cover_url: a.cover_url || undefined,
+    cover_color: a.cover_color || undefined,
+    bio: a.bio || '',
+    role: a.role || '',
+    verified: a.verified || false,
+    joined_at: a.joined_at || '',
+    location: a.location || '',
+    stats: {
+      articles: a.stats?.total_articles || 0,
+      likes: a.stats?.total_likes || 0,
+      comments: a.stats?.total_comments || 0,
+    },
+    social: a.social || {},
+    gamification: a.gamification || undefined,
+  }
+
+  const personSchema = buildPersonSchema({
+    name: author.name,
+    slug: author.slug,
+    bio: author.bio,
+    avatar_url: author.avatar_url,
+    role: author.role,
+    email: authorEmail,
+    social: author.social,
+    joined_at: author.joined_at,
+  })
+
+  profilePageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url: `${siteUrl}/profile/${author.slug}`,
+    name: `${author.name} - Penulis`,
+    mainEntity: personSchema,
+    dateCreated: author.joined_at,
+    inLanguage: 'id',
+  }
+
+  breadcrumbSchema = buildBreadcrumbSchema([
+    { name: 'Beranda', url: siteUrl },
+    { name: 'Penulis', url: `${siteUrl}/penulis` },
+    { name: author.name, url: `${siteUrl}/profile/${author.slug}` },
+  ])
+}
+---
+<Layout seo={seo}>
+  {author ? (
+    <>
+      <JsonLd schema={profilePageSchema} />
+      <JsonLd schema={breadcrumbSchema} />
+      <Breadcrumb items={[{ name: 'Penulis', href: '/penulis' }, { name: author.name }]} />
+      <AuthorProfilePage author={author} articles={articles} articlesMeta={articlesMeta} client:load />
+    </>
+  ) : (
+    <div class="container-main py-12 text-center">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Penulis tidak ditemukan</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Profil yang Anda cari tidak tersedia.</p>
+      <a href="/" class="btn-primary mt-4 inline-block">Kembali ke Beranda</a>
+    </div>
+  )}
+</Layout>

@@ -1,0 +1,21 @@
+---
+/**
+ * Legacy/internal article path: /berita/{slug}.
+ *
+ * The canonical public URL is /{category}/{slug}. To consolidate SEO signals
+ * and avoid any duplicate-content ambiguity, this path 301-redirects to the
+ * canonical clean URL (resolving the article's real category from the backend).
+ * If the article or its category cannot be resolved, fall back to /berita.
+ */
+import { fetchArticleFull } from '@/lib/data'
+
+const { slug } = Astro.params
+const data = await fetchArticleFull(slug!)
+
+if (!data?.article) {
+  return Astro.rewrite('/404')
+}
+
+const categorySlug = data.article.category?.slug || 'berita'
+return Astro.redirect(`/${categorySlug}/${data.article.slug}`, 301)
+---

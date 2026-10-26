@@ -1,0 +1,107 @@
+---
+/**
+ * Tag page — Astro equivalent of Next's src/app/tag/[slug]/page.tsx.
+ *
+ * SEO-critical behaviour preserved EXACTLY:
+ *  - Thin-content guard: noindex,follow when the tag has < 3 articles.
+ *  - Canonical uses the lowercased slug (prevents /tag/Jember vs /tag/jember dupes).
+ *  - "not found" (BE 404) → 404 page; "error" (timeout/5xx) → do NOT emit a
+ *    noindex based on empty data (avoids de-indexing healthy tags on a blip).
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { fetchTagArticlesResult } from '@/lib/data'
+import { buildBreadcrumbSchema } from '@/lib/schema'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { ArticleCard } from '@/components/article/ArticleCard'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+import type { Article } from '@/lib/types'
+
+const { slug } = Astro.params
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const page = Number(Astro.url.searchParams.get('page')) || 1
+
+const result = await fetchTagArticlesResult(slug!, page)
+
+// Tag doesn't exist → 404.
+if (result.status === 'not_found') {
+  return Astro.rewrite('/404')
+}
+
+// Normalize data across ok/error. On a transient backend error we still render
+// the page but MUST NOT emit a data-driven noindex (empty data != thin content).
+const isError = result.status === 'error'
+const data = result.status === 'ok' ? result.data : null
+const tagName = data?.tag?.name || slug!
+const totalArticles = data?.meta?.total ?? 0
+const articles: Article[] = data?.data || []
+const totalPages = data?.meta?.last_page || 1
+
+const pageTitle = page > 1 ? `Tag: ${tagName} - Halaman ${page}` : `Tag: ${tagName}`
+// Lowercased slug in the canonical so /tag/Jember and /tag/jember don't become
+// two competing URLs (Google reported this as a duplicate before).
+const canonicalSlug = (slug || '').toLowerCase()
+const canonicalPath = page > 1 ? `/tag/${canonicalSlug}?page=${page}` : `/tag/${canonicalSlug}`
+
+// Thin-content guard — noindex tags with fewer than 3 articles.
+// On error, default to indexable (don't punish a healthy tag for a 5xx blip).
+const shouldIndex = isError ? true : totalArticles >= 3
+
+const seo: SeoProps = {
+  title: pageTitle,
+  ogTitle: `${pageTitle} - ${SITE_NAME}`,
+  description: `Kumpulan berita terbaru dengan tag ${tagName} di ${SITE_NAME}. Baca selengkapnya seputar ${tagName}.`,
+  ogDescription: `Kumpulan berita terbaru dengan tag ${tagName} di ${SITE_NAME}`,
+  // Thin-content guard: noindex tags with fewer than 3 articles.
+  noindex: !shouldIndex,
+  canonical: canonicalPath,
+  image: {
+    url: `/tag/${canonicalSlug}/opengraph-image.png`,
+    width: 1200,
+    height: 630,
+    alt: tagName,
+  },
+}
+
+const breadcrumbSchema = buildBreadcrumbSchema([
+  { name: 'Beranda', url: siteUrl },
+  { name: `Tag: ${tagName}`, url: `${siteUrl}/tag/${slug}` },
+])
+---
+<Layout seo={seo}>
+  <JsonLd schema={breadcrumbSchema} />
+  <Breadcrumb items={[{ name: `Tag: ${tagName}` }]} />
+
+  <section class="container-main pb-12">
+    <h1 class="mb-6 text-2xl font-bold text-gray-900">#{tagName}</h1>
+
+    {articles.length > 0 ? (
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {articles.map((article) => (
+          <ArticleCard article={article} size="medium" />
+        ))}
+      </div>
+    ) : (
+      <p class="text-gray-600">Belum ada artikel dengan tag ini.</p>
+    )}
+
+    {totalPages > 1 && (
+      <nav aria-label="Pagination" class="mt-8 flex justify-center gap-2">
+        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+          <a
+            href={p === 1 ? `/tag/${slug}` : `/tag/${slug}?page=${p}`}
+            class={`flex h-10 w-10 items-center justify-center rounded ${
+              p === page
+                ? 'bg-primary text-white'
+                : 'border border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+            }`}
+            aria-current={p === page ? 'page' : undefined}
+          >
+            {p}
+          </a>
+        ))}
+      </nav>
+    )}
+  </section>
+</Layout>

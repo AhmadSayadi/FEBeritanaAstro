@@ -1,0 +1,14 @@
+---
+/**
+ * Write article (TipTap editor) — Astro equivalent of Next's src/app/tulis/page.tsx.
+ * noindex. The whole editor view hydrates as an island.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { WriteArticlePage } from '@/components/pageviews/WriteArticlePage'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = { title: 'Tulis Artikel', noindex: true, nofollow: true }
+---
+<Layout seo={seo}>
+  <WriteArticlePage client:only="react" />
+</Layout>

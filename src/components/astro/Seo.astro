@@ -1,0 +1,123 @@
+---
+/**
+ * Seo — the single place that emits per-page SEO <head> tags.
+ *
+ * Astro-native by design:
+ *  - Flat, explicit props instead of a nested framework "metadata" object, and
+ *    no intermediate object→tag translation layer.
+ *  - Canonical/OG URLs are resolved with `new URL(..., Astro.site)`, using
+ *    Astro's own `site` config and `Astro.url`. That normalises the URL for us,
+ *    so a trailing/leading-slash mismatch can no longer produce `//path`
+ *    (the exact bug the old Next build shipped on category pages).
+ *  - Tags are written literally in the template, so what you read is what the
+ *    crawler gets.
+ */
+import type { SeoProps } from '@/lib/seo'
+
+type Props = SeoProps
+
+const {
+  title,
+  ogTitle,
+  ogDescription,
+  titleAbsolute,
+  titleTemplate,
+  description,
+  canonical,
+  noindex = false,
+  nofollow = false,
+  keywords,
+  authors,
+  image,
+  ogType = 'website',
+  locale = 'id_ID',
+  siteName,
+  article,
+  twitterCard = 'summary_large_image',
+  twitterCreator,
+  rssHref,
+  noCanonical = false,
+} = Astro.props
+
+const site = Astro.site ?? new URL('https://beritana.com')
+const resolvedSiteName = siteName || 'Beritana'
+
+// Canonical: explicit value wins, otherwise the current path resolved against
+// `site`. `new URL` handles normalisation, so no manual string concatenation.
+const canonicalURL = canonical
+  ? new URL(canonical.toString(), site)
+  : new URL(Astro.url.pathname, site)
+
+/**
+ * Honour `trailingSlash: 'never'` from astro.config — `new URL('/', site)`
+ * yields "https://site/" so the root would otherwise advertise a different
+ * canonical than every internal link and the sitemap.
+ */
+const canonicalHref =
+  canonicalURL.pathname === '/'
+    ? canonicalURL.origin + canonicalURL.search
+    : canonicalURL.href.replace(/\/(?=$|\?)/, '')
+
+// Title: `titleAbsolute` bypasses the template (homepage brand title);
+// otherwise apply "%s | SiteName".
+const template = titleTemplate || `%s | ${resolvedSiteName}`
+const resolvedTitle = titleAbsolute
+  ? titleAbsolute
+  : title
+    ? template.replace('%s', title)
+    : undefined
+
+// Robots: always explicit so no page can ship without a directive.
+const robotsDirectives = [
+  noindex ? 'noindex' : 'index',
+  nofollow ? 'nofollow' : 'follow',
+]
+if (!noindex) {
+  robotsDirectives.push('max-image-preview:large', 'max-snippet:-1', 'max-video-preview:-1')
+}
+const robots = robotsDirectives.join(', ')
+
+// OG image → absolute URL (social scrapers reject relative ones).
+const imageURL = image?.url ? new URL(image.url, site).href : undefined
+
+// og:title / twitter:title default to the page title (untemplated).
+const socialTitle = ogTitle || titleAbsolute || title
+const socialDescription = ogDescription || description
+---
+{resolvedTitle && <title set:text={resolvedTitle} />}
+{description && <meta name="description" content={description} />}
+{keywords && <meta name="keywords" content={keywords} />}
+{authors?.map((a) => <meta name="author" content={a.name} />)}
+
+<meta name="robots" content={robots} />
+{!noCanonical && <link rel="canonical" href={canonicalHref} />}
+{rssHref && <link rel="alternate" type="application/rss+xml" href={rssHref} />}
+
+{/* Open Graph */}
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalHref} />
+<meta property="og:site_name" content={resolvedSiteName} />
+<meta property="og:locale" content={locale} />
+{socialTitle && <meta property="og:title" content={socialTitle} />}
+{socialDescription && <meta property="og:description" content={socialDescription} />}
+{imageURL && (
+  <>
+    <meta property="og:image" content={imageURL} />
+    {image?.width && <meta property="og:image:width" content={String(image.width)} />}
+    {image?.height && <meta property="og:image:height" content={String(image.height)} />}
+    {image?.alt && <meta property="og:image:alt" content={image.alt} />}
+  </>
+)}
+
+{/* Article-specific OG */}
+{article?.publishedTime && <meta property="article:published_time" content={article.publishedTime} />}
+{article?.modifiedTime && <meta property="article:modified_time" content={article.modifiedTime} />}
+{article?.section && <meta property="article:section" content={article.section} />}
+{article?.tags?.map((t) => <meta property="article:tag" content={t} />)}
+
+{/* Twitter */}
+<meta name="twitter:card" content={twitterCard} />
+{socialTitle && <meta name="twitter:title" content={socialTitle} />}
+{socialDescription && <meta name="twitter:description" content={socialDescription} />}
+{twitterCreator && <meta name="twitter:creator" content={twitterCreator} />}
+{imageURL && <meta name="twitter:image" content={imageURL} />}

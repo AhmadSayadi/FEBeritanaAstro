@@ -1,0 +1,18 @@
+---
+/**
+ * Traktir Kopi — Astro equivalent of Next's src/app/traktir/page.tsx. noindex.
+ * Parses the donation context from the query string server-side, then hydrates
+ * the payment-stage client.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { parseDonationContext } from '@/lib/traktir'
+import { PaymentStageClient } from '@/components/traktir/PaymentStageClient'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = { title: 'Traktir Kopi', noindex: true, nofollow: true }
+
+const context = parseDonationContext(`?${Astro.url.searchParams.toString()}`)
+---
+<Layout seo={seo}>
+  <PaymentStageClient context={context} client:load />
+</Layout>

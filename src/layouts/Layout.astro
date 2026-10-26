@@ -1,0 +1,200 @@
+---
+/**
+ * Root Layout — Astro equivalent of the old Next.js src/app/layout.tsx.
+ *
+ * Reproduces the same body structure, chrome (header/footer/ads/nav), global
+ * JSON-LD (Organization), and the GA / AdSense / Google SWG scripts. Per-page
+ * SEO is passed via the flat `seo` prop and rendered by Seo.astro.
+ *
+ * The interactive React pieces are hydrated as islands with directives chosen
+ * to match their original behaviour (header/live/breaking load eagerly; the
+ * rest hydrate when idle/visible).
+ */
+import '@/styles/globals.css'
+import BaseHead from '@/components/astro/BaseHead.astro'
+import Seo from '@/components/astro/Seo.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { DEFAULT_SITE_TITLE, type SeoProps } from '@/lib/seo'
+import FooterAstro from '@/components/astro/Footer.astro'
+import { Header } from '@/components/layout/Header'
+import { BackToTop } from '@/components/ui/BackToTop'
+import { CookieConsent } from '@/components/ui/CookieConsent'
+import { BreakingNewsBanner } from '@/components/ui/BreakingNewsBanner'
+import { BottomNav } from '@/components/ui/BottomNav'
+import { LiveEventBadge } from '@/components/home/LiveEventBadge'
+import { AdBanner } from '@/components/ads/AdBanner'
+import { SkinAds } from '@/components/ads/SkinAds'
+import { ScrollToTop } from '@/components/ui/ScrollToTop'
+import { buildOrganizationSchema } from '@/lib/schema'
+import { getSiteConfig } from '@/lib/site-config'
+import { fetchBreakingNews, fetchLiveEvents } from '@/lib/data'
+import {
+  GA_ID,
+  ADSENSE_ID,
+  GOOGLE_VERIFICATION,
+  BING_VERIFICATION,
+  YANDEX_VERIFICATION,
+} from '@/lib/env'
+
+interface Props {
+  /** Per-page SEO. Site-wide defaults are filled in below. */
+  seo?: SeoProps
+  /** <html lang> — defaults to id. */
+  lang?: string
+}
+
+const { seo = {}, lang = 'id' } = Astro.props
+
+const [config, breakingData, liveData] = await Promise.all([
+  getSiteConfig(),
+  fetchBreakingNews(),
+  fetchLiveEvents(),
+])
+
+const orgSchema = buildOrganizationSchema()
+
+// Breaking banner initial items (server-side) to avoid CLS — same mapping as Next.
+const breakingItems =
+  breakingData?.enabled === false
+    ? []
+    : (breakingData?.data || []).map((item) => ({
+        title: item.title,
+        slug: item.slug,
+        category_slug: item.category?.slug || 'nasional',
+      }))
+const liveEvent = (liveData?.data || []).find((e) => e.status === 'live') || null
+
+const gaId = config.ga_id || GA_ID || ''
+const adsenseId = config.adsense_id || ADSENSE_ID || ''
+
+// Search-engine verification — backend settings first, env as fallback.
+// Mirrors Next's RootLayout `verification` metadata (which was site-wide, not
+// per-page, and therefore must live here in the layout).
+const googleVerification = config.google_verification || GOOGLE_VERIFICATION || ''
+const bingVerification = config.bing_verification || BING_VERIFICATION || ''
+const yandexVerification = config.yandex_verification || YANDEX_VERIFICATION || ''
+const pinterestVerification = config.pinterest_verification || ''
+
+/**
+ * Site-wide SEO defaults. Page values always win; these only fill gaps so no
+ * page can ever render without a <title>, description, site name, or canonical.
+ */
+const seoProps: SeoProps = {
+  siteName: config.site_name || undefined,
+  ...seo,
+  titleAbsolute: seo.titleAbsolute ?? (seo.title ? undefined : DEFAULT_SITE_TITLE),
+  description: seo.description ?? config.site_description,
+}
+---
+<!doctype html>
+<html lang={lang} class="font-var--font-inter">
+  <head>
+    <BaseHead />
+
+    {/* Search-engine ownership verification (site-wide). */}
+    {googleVerification && <meta name="google-site-verification" content={googleVerification} />}
+    {bingVerification && <meta name="msvalidate.01" content={bingVerification} />}
+    {yandexVerification && <meta name="yandex-verification" content={yandexVerification} />}
+    {pinterestVerification && <meta name="p:domain_verify" content={pinterestVerification} />}
+
+    <Seo {...seoProps} />
+    <slot name="head" />
+  </head>
+  <body class="font-sans">
+    <ScrollToTop client:idle />
+    {/* ProgressBar dihapus: di Astro (MPA) tiap navigasi = full page reload,
+        browser sudah punya indikator loading sendiri, jadi progress bar ala SPA
+        tidak relevan dan bisa berkedip saat reload. */}
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:shadow-lg"
+    >
+      Langsung ke konten
+    </a>
+
+    <AdBanner posisi="header_atas" className="hidden sm:block" client:idle />
+    {/* Initial state is server-rendered (initialEvent/initialItems), so these
+        don't need eager hydration — client:idle keeps their /api refetch off
+        the critical load path. Header stays client:load (search/menu must be
+        interactive early). */}
+    <LiveEventBadge initialEvent={liveEvent} client:idle />
+    <Header client:load />
+    <BreakingNewsBanner initialItems={breakingItems} client:idle />
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <AdBanner posisi="atas_footer" className="container-main my-4" client:visible />
+    <FooterAstro />
+
+    <AdBanner posisi="mobile_bawah" className="fixed bottom-0 left-0 right-0 z-40 sm:hidden" client:idle />
+
+    <BackToTop client:idle />
+    <BottomNav client:idle />
+    <CookieConsent client:idle />
+    <SkinAds client:idle />
+
+    <JsonLd schema={orgSchema} />
+
+    {/* Google Analytics — from settings or env fallback.
+        MPA: every navigation is a fresh document load, so gtag sends the
+        page_view automatically. No client-router hooks needed. */}
+    {gaId && (
+      <>
+        <script async src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}></script>
+        <script is:inline define:vars={{ gaId }}>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', gaId);
+        </script>
+      </>
+    )}
+
+    {/* Google AdSense — from settings or env fallback */}
+    {adsenseId && (
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+        crossorigin="anonymous"></script>
+    )}
+
+    {/* Google Subscribe with Google (SWG) — News Publisher signal.
+        Site-wide, exactly as the old Next RootLayout (presence must not change:
+        SWG is a publisher-level signal and AdSense policy expects all pages).
+        The old layout used strategy="lazyOnload", so here the SWG script is
+        injected only after the page has fully loaded (requestIdleCallback /
+        load event) to keep it off the FCP/LCP critical path. */}
+    <script is:inline>
+      (function () {
+        function loadSwg() {
+          (self.SWG_BASIC = self.SWG_BASIC || []).push(function (basicSubscriptions) {
+            basicSubscriptions.init({
+              type: 'NewsArticle',
+              isPartOfType: ['Product'],
+              isPartOfProductId: 'CAow7-vGDA:openaccess',
+              clientOptions: { theme: 'light', lang: 'id' },
+            });
+          });
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://news.google.com/swg/js/v1/swg-basic.js';
+          document.head.appendChild(s);
+        }
+        function schedule() {
+          if ('requestIdleCallback' in window) {
+            requestIdleCallback(loadSwg, { timeout: 3000 });
+          } else {
+            setTimeout(loadSwg, 1200);
+          }
+        }
+        if (document.readyState === 'complete') {
+          schedule();
+        } else {
+          window.addEventListener('load', schedule, { once: true });
+        }
+      })();
+    </script>
+  </body>
+</html>

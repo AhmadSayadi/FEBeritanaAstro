@@ -1,0 +1,25 @@
+---
+/**
+ * Leaderboard — Astro equivalent of Next's src/app/leaderboard/page.tsx.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { LeaderboardPage } from '@/components/pageviews/LeaderboardPage'
+import { SITE_URL_RAW } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = {
+  title: 'Leaderboard Penulis',
+  ogTitle: 'Leaderboard Penulis - Beritana',
+  description: 'Peringkat penulis terbaik berdasarkan poin, views, dan reputasi',
+  canonical: '/leaderboard',
+  image: {
+    url: '/leaderboard/opengraph-image.png',
+    width: 1200,
+    height: 630,
+    alt: 'Leaderboard Penulis Beritana',
+  },
+}
+---
+<Layout seo={seo}>
+  <LeaderboardPage client:load />
+</Layout>

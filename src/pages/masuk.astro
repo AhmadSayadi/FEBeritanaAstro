@@ -1,0 +1,30 @@
+---
+/**
+ * Login — Astro equivalent of Next's src/app/masuk/page.tsx. noindex.
+ */
+import Layout from '@/layouts/Layout.astro'
+import { LoginForm } from '@/components/pageviews/LoginForm'
+import type { SeoProps } from '@/lib/seo'
+
+const seo: SeoProps = {
+  title: 'Masuk',
+  noindex: true, nofollow: true,
+}
+---
+<Layout seo={seo}>
+  <section class="container-main flex min-h-[70vh] items-center justify-center py-12">
+    <div class="w-full max-w-md">
+      <div class="text-center">
+        <h1 class="text-2xl font-bold text-gray-900">Masuk ke beritana</h1>
+        <p class="mt-2 text-sm text-gray-600">Masuk untuk bookmark, komentar, dan fitur lainnya</p>
+      </div>
+
+      <LoginForm client:load />
+
+      <p class="mt-6 text-center text-sm text-gray-600">
+        Belum punya akun?{' '}
+        <a href="/daftar" class="font-medium text-primary hover:underline">Daftar sekarang</a>
+      </p>
+    </div>
+  </section>
+</Layout>

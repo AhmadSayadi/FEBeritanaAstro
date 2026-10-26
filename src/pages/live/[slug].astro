@@ -1,0 +1,136 @@
+---
+/**
+ * Live event — Astro equivalent of Next's src/app/live/[slug]/page.tsx.
+ * Emits BroadcastEvent JSON-LD; ShareButtons hydrates.
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { apiFetchCached, getImageUrl } from '@/lib/api'
+import { Breadcrumb } from '@/components/layout/Breadcrumb'
+import { ShareButtons } from '@/components/article/ShareButtons'
+import { SITE_URL_RAW, SITE_NAME } from '@/lib/env'
+import type { SeoProps } from '@/lib/seo'
+
+interface LiveEvent {
+  id: number
+  title: string
+  slug: string
+  status: string
+  started_at?: string
+  viewers?: number
+  thumbnail_url?: string
+  embed_url?: string
+  description?: string
+}
+
+const { slug } = Astro.params
+const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
+const siteName = SITE_NAME || 'Beritana'
+
+async function getLiveEvent(s: string): Promise<LiveEvent | null> {
+  try {
+    const res = await apiFetchCached<{ data: LiveEvent }>(`/live/${s}`, 30)
+    return res.data
+  } catch {
+    try {
+      const res = await apiFetchCached<{ data: LiveEvent[] }>('/live', 30)
+      return res.data.find((e) => e.slug === s) || null
+    } catch {
+      return null
+    }
+  }
+}
+
+const event = await getLiveEvent(slug!)
+
+const seo: SeoProps = event
+  ? {
+      title: event.title,
+      ogTitle: `🔴 LIVE: ${event.title}`,
+      description: `🔴 LIVE: ${event.title}`,
+      ogDescription: event.description || `Live event dari ${siteName}`,
+      canonical: `/live/${event.slug}`,
+      image: {
+        url: event.thumbnail_url || `/live/${event.slug}/opengraph-image.png`,
+        width: 1200,
+        height: 630,
+        alt: event.title,
+      },
+    }
+  : { title: 'Live Event' }
+
+const broadcastSchema = event
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'BroadcastEvent',
+      name: event.title,
+      description: event.description || `Live event dari ${siteName}`,
+      startDate: event.started_at || undefined,
+      isLiveBroadcast: event.status === 'live',
+      videoFormat: 'HD',
+      publishedOn: { '@type': 'BroadcastService', name: siteName, url: siteUrl },
+    }
+  : null
+---
+<Layout seo={seo}>
+  {event ? (
+    <>
+      <JsonLd schema={broadcastSchema} />
+      <Breadcrumb items={[{ name: 'Live' }, { name: event.title }]} />
+
+      <div class="container-main pb-12">
+        <div class="mx-auto max-w-4xl">
+          <div class="mb-4 flex items-center gap-3">
+            {event.status === 'live' && (
+              <span class="flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1 text-xs font-bold text-white">
+                <span class="relative flex h-2 w-2">
+                  <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-75"></span>
+                  <span class="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                </span>
+                LIVE
+              </span>
+            )}
+            {event.status === 'ended' && (
+              <span class="rounded-full bg-gray-500 px-3 py-1 text-xs font-bold text-white">BERAKHIR</span>
+            )}
+            {event.viewers && event.viewers > 0 && (
+              <span class="text-sm text-gray-500">{event.viewers.toLocaleString()} menonton</span>
+            )}
+          </div>
+
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white sm:text-3xl">{event.title}</h1>
+
+          <div class="mt-6 aspect-video w-full overflow-hidden rounded-xl bg-black">
+            {event.embed_url ? (
+              <iframe
+                src={event.embed_url}
+                title={event.title}
+                class="h-full w-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen
+              ></iframe>
+            ) : event.thumbnail_url ? (
+              <div class="flex h-full items-center justify-center">
+                <img src={getImageUrl(event.thumbnail_url, { width: 1024 })} alt={event.title} class="h-full w-full object-cover" loading="lazy" />
+              </div>
+            ) : (
+              <div class="flex h-full items-center justify-center text-gray-400"><p>Stream belum tersedia</p></div>
+            )}
+          </div>
+
+          {event.description && <p class="mt-4 text-gray-700 dark:text-gray-300">{event.description}</p>}
+
+          <div class="mt-6">
+            <ShareButtons url={`${siteUrl}/live/${event.slug}`} title={`🔴 LIVE: ${event.title}`} client:visible />
+          </div>
+        </div>
+      </div>
+    </>
+  ) : (
+    <div class="container-main py-12 text-center">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Live Event tidak ditemukan</h1>
+      <p class="mt-2 text-gray-600 dark:text-gray-400">Event yang Anda cari tidak tersedia atau sudah berakhir.</p>
+      <a href="/" class="btn-primary mt-4 inline-block">Kembali ke Beranda</a>
+    </div>
+  )}
+</Layout>

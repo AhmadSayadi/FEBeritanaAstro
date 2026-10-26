@@ -1,0 +1,8 @@
+---
+/**
+ * Legacy author route /penulis/{slug} → 308 permanent redirect to /profile/{slug}.
+ * Mirrors Next's next.config.mjs redirect (permanent).
+ */
+const { slug } = Astro.params
+return Astro.redirect(`/profile/${slug}`, 308)
+---

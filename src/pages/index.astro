@@ -1,0 +1,55 @@
+---
+/**
+ * Homepage — Astro equivalent of Next's src/app/page.tsx.
+ *
+ * Fetches homepage data + config, emits home metadata, the sr-only <h1>,
+ * WebSite + ItemList JSON-LD, and the LCP hero preload server-side. The section
+ * grid renders as one hydrated island (HomePageView) preserving the exact
+ * backend-driven ordering/activation logic.
+ */
+import Layout from '@/layouts/Layout.astro'
+import JsonLd from '@/components/astro/JsonLd.astro'
+import { buildHomeSeo } from '@/lib/seo'
+import { fetchHomepage } from '@/lib/data'
+import { getImageUrl } from '@/lib/api'
+import { getSiteConfig } from '@/lib/site-config'
+import { buildWebsiteSchema, buildItemListSchema } from '@/lib/schema'
+import { HomePageView } from '@/components/home/HomePageView'
+import { HomeSkeleton } from '@/components/home/HomeSkeleton'
+
+const [homepageData, config] = await Promise.all([
+  fetchHomepage(),
+  getSiteConfig(),
+])
+
+const seo = await buildHomeSeo()
+
+// WebSite schema (always) + ItemList for top articles (Top Stories signal).
+const websiteSchema = buildWebsiteSchema()
+const topArticles = homepageData
+  ? [...(homepageData.slider || []), ...(homepageData.latest_news || [])].slice(0, 10)
+  : []
+const itemListSchema = topArticles.length ? buildItemListSchema(topArticles) : null
+
+// Preload hero image for LCP — served directly from CDN (no proxy hop).
+const heroSrc = homepageData?.slider?.[0]?.thumbnail_url
+const heroImageUrl = heroSrc ? getImageUrl(heroSrc, { width: 720, skipProxy: true }) : null
+---
+<Layout seo={seo}>
+  <Fragment slot="head">
+    {heroImageUrl && !heroImageUrl.startsWith('data:') && (
+      <link rel="preload" as="image" href={heroImageUrl} fetchpriority="high" />
+    )}
+  </Fragment>
+
+  {/* SEO: H1 for homepage — visually hidden but readable by crawlers */}
+  <h1 class="sr-only">Beritana: The Voice of Young Indonesian</h1>
+
+  <JsonLd schema={[websiteSchema, itemListSchema]} />
+
+  {homepageData ? (
+    <HomePageView homepageData={homepageData} config={config} client:load />
+  ) : (
+    <HomeSkeleton />
+  )}
+</Layout>
