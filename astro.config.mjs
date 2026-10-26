@@ -77,16 +77,10 @@ export default defineConfig({
         // startup ("MessageChannel is not defined"). The edge build
         // (`react-dom/server.edge`) doesn't need it.
         'react-dom/server': 'react-dom/server.edge',
-        // Path alias — same as Next's "@/*": "./src/*"
+        // Project path alias "@/*" -> "./src/*". The former next/* compat
+        // aliases are gone: components now import the local compat shims
+        // directly from '@/compat/*', so there is no 'next/*' reference left.
         '@': fileURLToPath(new URL('./src', import.meta.url)),
-        // next/* compatibility shims so React components migrate unchanged
-        'next/link': fileURLToPath(new URL('./src/compat/next/link.tsx', import.meta.url)),
-        'next/image': fileURLToPath(new URL('./src/compat/next/image.tsx', import.meta.url)),
-        'next/navigation': fileURLToPath(new URL('./src/compat/next/navigation.ts', import.meta.url)),
-        'next/script': fileURLToPath(new URL('./src/compat/next/script.tsx', import.meta.url)),
-        'next/font/google': fileURLToPath(new URL('./src/compat/next/font-google.ts', import.meta.url)),
-        'next/og': fileURLToPath(new URL('./src/compat/next/og.ts', import.meta.url)),
-        'next/dynamic': fileURLToPath(new URL('./src/compat/next/dynamic.tsx', import.meta.url)),
       },
     },
     ssr: {

@@ -22,7 +22,7 @@ const CSP = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://news.google.com",
   "img-src 'self' data: blob: https: http:",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://pagead2.googlesyndication.com https://cms.beritana.com https://*.cloudinary.com https://cdn.beritana.com https://*.adtrafficquality.google https://wttr.in https://news.google.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
+  "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://pagead2.googlesyndication.com https://cms.beritana.com https://*.cloudinary.com https://cdn.beritana.com https://*.adtrafficquality.google https://news.google.com https://cloudflareinsights.com https://static.cloudflareinsights.com",
   "frame-src 'self' https://www.youtube.com https://www.instagram.com https://platform.twitter.com https://www.tiktok.com https://www.facebook.com https://pagead2.googlesyndication.com https://tpc.googlesyndication.com https://googleads.g.doubleclick.net https://news.google.com https://*.adtrafficquality.google https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",

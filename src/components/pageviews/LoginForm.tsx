@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from '@/compat/navigation'
 import { login } from '@/lib/auth'
 import { isSafeInternalPath } from '@/lib/traktir'
 

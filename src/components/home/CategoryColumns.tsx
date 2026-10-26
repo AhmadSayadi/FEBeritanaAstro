@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/compat/Link'
 import { Article, Category } from '@/lib/types'
 import { ArticleCard } from '@/components/article/ArticleCard'
 

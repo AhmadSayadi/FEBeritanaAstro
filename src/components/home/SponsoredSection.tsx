@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { getImageUrl, getBlurProps } from '@/lib/api'
 
 interface SponsoredItem {

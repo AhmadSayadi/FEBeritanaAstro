@@ -36,10 +36,26 @@ function durationSeconds(raw: string | undefined | null): number | undefined {
   return undefined
 }
 
-function youTubePlayerUrl(url: string | undefined): string | null {
+function youTubeId(url: string | undefined): string | null {
   if (!url) return null
   const m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]+)/)
-  return m ? `https://www.youtube.com/embed/${m[1]}` : null
+  return m ? m[1] : null
+}
+
+function youTubePlayerUrl(url: string | undefined): string | null {
+  const id = youTubeId(url)
+  return id ? `https://www.youtube.com/embed/${id}` : null
+}
+
+/**
+ * Thumbnail for the sitemap: use the video's own thumbnail if the backend
+ * provides one, otherwise derive the YouTube poster (hqdefault). A thumbnail is
+ * REQUIRED by the video sitemap spec, so entries without any are skipped.
+ */
+function videoThumb(v: Video): string | null {
+  if (v.thumbnail_url) return getImageUrl(v.thumbnail_url, { width: 1200 })
+  const id = youTubeId(v.video_url)
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null
 }
 
 export const GET: APIRoute = async () => {
@@ -57,10 +73,10 @@ export const GET: APIRoute = async () => {
     str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;')
 
   const urls = videos
-    .filter((v) => v.thumbnail_url && v.title)
-    .map((v) => {
+    .map((v) => ({ v, thumb: videoThumb(v) }))
+    .filter(({ v, thumb }) => thumb && v.title)
+    .map(({ v, thumb }) => {
       const page = `${siteUrl}/video/${v.slug}`
-      const thumb = getImageUrl(v.thumbnail_url, { width: 1200 })
       const dur = durationSeconds(v.duration)
       const player = youTubePlayerUrl(v.video_url)
       const desc = `Tonton video: ${v.title}${v.source ? `. Sumber: ${v.source}` : ''}`
@@ -68,7 +84,7 @@ export const GET: APIRoute = async () => {
       return `  <url>
     <loc>${escapeXml(page)}</loc>
     <video:video>
-      <video:thumbnail_loc>${escapeXml(thumb)}</video:thumbnail_loc>
+      <video:thumbnail_loc>${escapeXml(thumb as string)}</video:thumbnail_loc>
       <video:title>${escapeXml(v.title)}</video:title>
       <video:description>${escapeXml(desc)}</video:description>${player ? `
       <video:player_loc>${escapeXml(player)}</video:player_loc>` : ''}${dur ? `

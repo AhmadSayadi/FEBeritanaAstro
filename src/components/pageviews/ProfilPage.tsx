@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import Image from '@/compat/Image'
+import Link from '@/compat/Link'
+import { useRouter } from '@/compat/navigation'
 import { getCurrentUser, getToken, isLoggedIn, logout, User } from '@/lib/auth'
 import { getImageUrl } from '@/lib/api'
 import { GamificationDashboard } from '@/components/gamification/GamificationDashboard'

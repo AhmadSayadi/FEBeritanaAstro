@@ -1,6 +1,6 @@
-import Link from 'next/link'
+import Link from '@/compat/Link'
 import { Article } from '@/lib/types'
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { getImageUrl, getBlurProps } from '@/lib/api'
 
 interface BannerExclusiveProps {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
+import Link from '@/compat/Link'
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { getImageUrl, getBlurProps } from '@/lib/api'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
 

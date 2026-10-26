@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter } from '@/compat/navigation'
+import Link from '@/compat/Link'
 import { getImageUrl } from '@/lib/api'
 
 interface Suggestion {

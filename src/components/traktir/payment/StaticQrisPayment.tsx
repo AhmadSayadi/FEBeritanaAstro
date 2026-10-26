@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { formatRupiah, TRAKTIR_MESSAGES } from '@/lib/traktir'
 import type { PaymentProps } from './types'
 

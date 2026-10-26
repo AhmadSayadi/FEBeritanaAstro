@@ -1,4 +1,4 @@
-import { ImageResponse } from '@/compat/next/og'
+import { ImageResponse } from '@/compat/og'
 
 export const OG_SIZE = { width: 1200, height: 630 }
 export const OG_CONTENT_TYPE = 'image/png'

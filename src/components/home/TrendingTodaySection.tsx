@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from '@/compat/Image'
+import Link from '@/compat/Link'
 import { getImageUrl, getBlurProps } from '@/lib/api'
 
 interface TrendingArticle {

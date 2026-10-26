@@ -1,6 +1,6 @@
 'use client'
 
-import dynamic from 'next/dynamic'
+import dynamic from '@/compat/dynamic'
 
 export const ReadingProgress = dynamic(
   () => import('@/components/ui/ReadingProgress').then(mod => ({ default: mod.ReadingProgress })),

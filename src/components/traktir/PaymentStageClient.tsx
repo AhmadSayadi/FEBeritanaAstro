@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useRouter } from '@/compat/navigation'
+import Link from '@/compat/Link'
 import type { DonationContext, TraktirConfig } from '@/lib/types'
 import { getTraktirConfig, buildReturnUrl, TRAKTIR_MESSAGES } from '@/lib/traktir'
 import { isLoggedIn } from '@/lib/auth'

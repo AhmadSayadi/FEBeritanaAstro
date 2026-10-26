@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { formatDateID } from '@/lib/date'
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { Article } from '@/lib/types'
 import { ArticleCard } from '@/components/article/ArticleCard'
 import { AdBanner } from '@/components/ads/AdBanner'

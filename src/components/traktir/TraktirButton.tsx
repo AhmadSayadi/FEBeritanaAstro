@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/compat/navigation'
 import type { Article, CoffeeOption, TraktirConfig, DonationContext } from '@/lib/types'
 import { getTraktirConfig, buildReturnUrl } from '@/lib/traktir'
 import { isLoggedIn } from '@/lib/auth'

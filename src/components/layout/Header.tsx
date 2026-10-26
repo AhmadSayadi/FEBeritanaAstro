@@ -1,13 +1,12 @@
 'use client'
 
-import Link from 'next/link'
-import Image from 'next/image'
+import Link from '@/compat/Link'
+import Image from '@/compat/Image'
 import { useState, useEffect, useRef } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/compat/navigation'
 import { CategoryNav } from '@/lib/site-config'
 import { DarkModeToggle } from '@/components/ui/DarkModeToggle'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
-import { WeatherWidget } from '@/components/home/WeatherWidget'
 
 export function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -152,7 +151,6 @@ export function Header() {
               <span className="text-sm text-gray-500">
                 {todayDate}
               </span>
-              <WeatherWidget />
             </div>
 
             {/* Right side — search + social + user */}

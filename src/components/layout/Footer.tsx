@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from '@/compat/Link'
 import { getSiteConfig, type SiteConfig } from '@/lib/site-config'
 
 // Async data wrapper — preserved for any server-side importer.

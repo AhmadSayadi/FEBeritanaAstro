@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/compat/navigation'
 import { register } from '@/lib/auth'
 
 export function RegisterForm() {

@@ -1,7 +1,7 @@
 'use client'
 
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from '@/compat/Image'
+import Link from '@/compat/Link'
 import { useRef } from 'react'
 import { Article } from '@/lib/types'
 import { getImageUrl, getBlurProps } from '@/lib/api'

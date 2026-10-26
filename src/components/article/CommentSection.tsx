@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
+import Image from '@/compat/Image'
 import { getCurrentUser, getToken, isLoggedIn } from '@/lib/auth'
-import Link from 'next/link'
+import Link from '@/compat/Link'
 
 interface CommentUser {
   id?: number

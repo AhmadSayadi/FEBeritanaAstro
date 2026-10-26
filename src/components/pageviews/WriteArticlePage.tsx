@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import dynamic from '@/compat/dynamic'
+import Link from '@/compat/Link'
+import { useRouter, useSearchParams } from '@/compat/navigation'
 import { getCurrentUser, isLoggedIn, isAuthor, getToken } from '@/lib/auth'
 import { getImageUrl } from '@/lib/api'
 import { TagAutocomplete } from '@/components/ui/TagAutocomplete'

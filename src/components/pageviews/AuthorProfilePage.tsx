@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
+import Image from '@/compat/Image'
+import Link from '@/compat/Link'
 import { Article } from '@/lib/types'
 import { getCurrentUser } from '@/lib/auth'
 import { getImageUrl } from '@/lib/api'

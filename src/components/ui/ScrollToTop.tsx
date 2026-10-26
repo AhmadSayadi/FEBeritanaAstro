@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname } from '@/compat/navigation'
 
 /**
  * Scroll to top on route change.
