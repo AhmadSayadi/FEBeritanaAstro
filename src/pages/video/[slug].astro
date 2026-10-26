@@ -58,11 +58,39 @@ function getYouTubeEmbedUrl(url: string): string | null {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null
 }
 
+/**
+ * Convert a human duration to a valid ISO-8601 duration for VideoObject.
+ * Handles "HH:MM:SS", "MM:SS", "M:SS", and plain seconds ("90"). Returns
+ * undefined if it can't parse — an absent `duration` is better than an invalid
+ * one, which makes Google reject the whole VideoObject.
+ */
+function toIsoDuration(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined
+  const s = String(raw).trim()
+  if (/^\d+$/.test(s)) {
+    // plain seconds
+    const total = parseInt(s, 10)
+    const h = Math.floor(total / 3600)
+    const m = Math.floor((total % 3600) / 60)
+    const sec = total % 60
+    return `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}${sec ? sec + 'S' : h || m ? '' : '0S'}`
+  }
+  const parts = s.split(':').map((p) => parseInt(p, 10))
+  if (parts.some((n) => Number.isNaN(n))) return undefined
+  let h = 0, m = 0, sec = 0
+  if (parts.length === 3) [h, m, sec] = parts
+  else if (parts.length === 2) [m, sec] = parts
+  else return undefined
+  return `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}${sec ? sec + 'S' : h || m ? '' : '0S'}`
+}
+
 const [video, relatedVideos] = await Promise.all([getVideo(slug!), getRelatedVideos(slug!)])
 
 if (!video) {
   return Astro.rewrite('/404')
 }
+
+const embedUrl = getYouTubeEmbedUrl(video.video_url)
 
 const ogImage = video.thumbnail_url ? getImageUrl(video.thumbnail_url, { width: 1200 }) : undefined
 const seo: SeoProps = {
@@ -71,12 +99,13 @@ const seo: SeoProps = {
   ogDescription: `Tonton video: ${video.title}`,
   canonical: `/video/${video.slug}`,
   ogType: 'video.other',
+  // When there's an embeddable player, use the Twitter "player" card so X can
+  // inline-play; otherwise fall back to the large image card.
+  twitterCard: embedUrl ? 'player' : 'summary_large_image',
   image: ogImage
     ? { url: ogImage, width: 1280, height: 720, alt: video.thumbnail_alt || video.title }
     : undefined,
 }
-
-const embedUrl = getYouTubeEmbedUrl(video.video_url)
 const publishDate = formatDateID(video.published_at)
 
 const videoSchema = {
@@ -86,7 +115,7 @@ const videoSchema = {
   description: `Tonton video: ${video.title}`,
   thumbnailUrl: getImageUrl(video.thumbnail_url, { width: 1200 }),
   uploadDate: video.published_at,
-  duration: video.duration ? `PT${video.duration.replace(':', 'M')}S` : undefined,
+  duration: toIsoDuration(video.duration),
   contentUrl: video.video_url || undefined,
   embedUrl: embedUrl || undefined,
   publisher: {
@@ -97,6 +126,24 @@ const videoSchema = {
 }
 ---
 <Layout seo={seo}>
+  <Fragment slot="head">
+    {/* Video-specific Open Graph + Twitter player (the shared Seo.astro only
+        covers images). embedUrl present → advertise the player so social
+        platforms can inline-play; thumbnail doubles as the poster. */}
+    {embedUrl && (
+      <>
+        <meta property="og:video" content={embedUrl} />
+        <meta property="og:video:secure_url" content={embedUrl} />
+        <meta property="og:video:type" content="text/html" />
+        <meta property="og:video:width" content="1280" />
+        <meta property="og:video:height" content="720" />
+        <meta name="twitter:player" content={embedUrl} />
+        <meta name="twitter:player:width" content="1280" />
+        <meta name="twitter:player:height" content="720" />
+      </>
+    )}
+  </Fragment>
+
   <JsonLd schema={videoSchema} />
   <Breadcrumb items={[{ name: 'Video', href: '/video' }]} />
 

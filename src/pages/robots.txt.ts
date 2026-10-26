@@ -54,6 +54,7 @@ export const GET: APIRoute = () => {
     `Sitemap: ${siteUrl}/sitemap.xml`,
     `Sitemap: ${siteUrl}/news-sitemap-index.xml`,
     `Sitemap: ${siteUrl}/news-sitemap.xml`,
+    `Sitemap: ${siteUrl}/video-sitemap.xml`,
     '',
   ]
 
