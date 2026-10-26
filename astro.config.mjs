@@ -1,50 +1,30 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
-import tailwind from '@astrojs/tailwind'
+import cloudflare from '@astrojs/cloudflare'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Beritana — Astro SSR migration from Next.js 15 (App Router).
+ * Beritana — Astro 7 SSR, deployed to Cloudflare Workers.
  *
- * Adapter is chosen at build time via DEPLOY_TARGET:
- *   - "node"       (default) → @astrojs/node standalone. Runs on shared hosting
- *                              / VPS (like the old server.js) AND on Vercel.
- *   - "vercel"     → @astrojs/vercel (Vercel serverless functions).
- *   - "cloudflare" → @astrojs/cloudflare (Workers/Pages).
- *
- * Only the selected adapter package needs to be installed. node is in deps;
- * install @astrojs/vercel or @astrojs/cloudflare only if you target those.
+ * Single target: @astrojs/cloudflare (Workers + static assets). The build
+ * emits dist/client (assets) + dist/server (worker + generated wrangler.json).
+ * See wrangler.toml for the required nodejs_compat flag.
  */
-const DEPLOY_TARGET = process.env.DEPLOY_TARGET || 'node'
-
-async function resolveAdapter() {
-  if (DEPLOY_TARGET === 'vercel') {
-    const { default: vercel } = await import('@astrojs/vercel')
-    return vercel()
-  }
-  if (DEPLOY_TARGET === 'cloudflare') {
-    const { default: cloudflare } = await import('@astrojs/cloudflare')
-    return cloudflare()
-  }
-  const { default: node } = await import('@astrojs/node')
-  // Passenger / cPanel shared hosting: middleware mode + custom server.js
-  // (Passenger controls the HTTP server, like the old Next.js server.js).
-  if (DEPLOY_TARGET === 'passenger') {
-    return node({ mode: 'middleware' })
-  }
-  return node({ mode: 'standalone' })
-}
 
 export default defineConfig({
   site: 'https://beritana.com',
   output: 'server',
+  // Astro 7 changed the compressHTML default to 'jsx' (strips whitespace
+  // between inline elements, like React — e.g. <span>a</span><em>b</em> → "ab").
+  // Keep the v6 HTML-aware behavior to avoid any visual spacing regression.
+  compressHTML: true,
   // SEO: enforce a single canonical URL shape. "never" means no trailing slash
   // (/world, not /world/) — matches every canonical/sitemap URL we emit and
   // prevents duplicate-URL indexing. `build.format: 'file'` keeps that shape.
   trailingSlash: 'never',
   build: { format: 'file' },
-  adapter: await resolveAdapter(),
+  adapter: cloudflare(),
   // Prefetch link targets so navigation feels instant. `hover` strategy fetches
   // the destination HTML when the user hovers/taps a link (cheap, safe for MPA).
   // Pure MPA — no View Transitions — so every URL stays a full standalone HTML
@@ -63,11 +43,10 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    tailwind({
-      // We provide our own global CSS import (src/styles/globals.css),
-      // so disable the integration's injected base stylesheet.
-      applyBaseStyles: false,
-    }),
+    // Tailwind 3 runs through PostCSS directly (postcss.config.mjs +
+    // the @tailwind directives in src/styles/globals.css). The old
+    // @astrojs/tailwind integration only wired that up for us and doesn't
+    // support Astro 7, so it's removed — styling is unchanged.
   ],
   image: {
     // Match Next config: allow any remote host (images come from cdn.beritana.com etc.)
@@ -94,11 +73,8 @@ export default defineConfig({
         // Cloudflare Workers has no `MessageChannel`, which React 19's default
         // `react-dom/server.browser` build requires — so SSR crashes at worker
         // startup ("MessageChannel is not defined"). The edge build
-        // (`react-dom/server.edge`) doesn't need it. Apply this alias ONLY for
-        // the Cloudflare target so the Node/Vercel builds keep the normal build.
-        ...(DEPLOY_TARGET === 'cloudflare'
-          ? { 'react-dom/server': 'react-dom/server.edge' }
-          : {}),
+        // (`react-dom/server.edge`) doesn't need it.
+        'react-dom/server': 'react-dom/server.edge',
         // Path alias — same as Next's "@/*": "./src/*"
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         // next/* compatibility shims so React components migrate unchanged

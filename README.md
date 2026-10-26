@@ -23,7 +23,7 @@ sebagai **Astro islands**.
 | OG image | `@vercel/og` (Satori) — dinamis per halaman |
 | Adapter | `@astrojs/node` (default) · `@astrojs/vercel` · `@astrojs/cloudflare` |
 
-Butuh **Node 22.0+** (Astro 5). Node 7.x/Astro 7 butuh Node ≥ 22.23.4.
+Butuh **Node 22.12.0+** (Astro 7). Astro 7 memakai compiler Rust + Vite 8.
 
 ---
 
@@ -122,22 +122,28 @@ sisanya ke handler SSR Astro.
 - Set semua env di Dashboard → Settings → Environment Variables
 - `vercel.json` sudah menyertakan cache-control untuk aset & file SEO
 
-### 3. Cloudflare Pages (Workers) — direkomendasikan untuk hemat biaya
+### 3. Cloudflare Workers — direkomendasikan untuk hemat biaya
 
 Cloudflare **tidak punya ISR Writes / CPU-hours** yang membuat free tier Vercel
 cepat jebol untuk situs berita. Pengganti ISR di sini adalah cache CDN via
 header `s-maxage` (dari `middleware.ts`), jadi metrik termahal Vercel tidak ada.
 
+> Sejak `@astrojs/cloudflare` v14 (Astro 7), adapter menargetkan **Cloudflare
+> Workers (static assets)**, bukan lagi Pages `_worker.js`. Build menghasilkan
+> `dist/client` (aset statis) + `dist/server` (worker + `wrangler.json` yang
+> digenerate adapter). Aset statis dilayani langsung tanpa memanggil Worker
+> (tidak memakai jatah request) — pola paling hemat untuk free tier.
+
 - Build Command: `npm run build:cloudflare`
-- Build output directory: `dist`
-- Set semua env (`.env`) di Dashboard → Settings → Environment Variables
+- Deploy: `npx wrangler deploy` (dijalankan setelah build; atau lewat Git /
+  Workers Builds di dashboard)
+- Set semua env (`.env`) di Dashboard → Worker → Settings → Variables
 - Adapter `@astrojs/cloudflare` sudah di `optionalDependencies`
 
 **Wajib: `nodejs_compat`.** SSR worker mengimpor `sanitize-html` (membersihkan
 HTML penulis di halaman artikel/pages) yang butuh Node API. Tanpa flag ini
-halaman artikel error saat runtime walau build sukses. Dua nilai ini sudah
-diset di `wrangler.toml` (dan bisa juga diset di Dashboard → Settings →
-Functions → Compatibility flags):
+halaman artikel error saat runtime walau build sukses. Nilai ini ada di
+`wrangler.toml` (dan ikut digenerate ke `dist/server/wrangler.json`):
 
 ```toml
 compatibility_date  = "2024-11-01"
@@ -154,7 +160,7 @@ Uji runtime Cloudflare secara lokal sebelum deploy:
 
 ```bash
 npm run build:cloudflare
-npx wrangler pages dev dist      # jalankan di Workers runtime asli, lalu buka /
+npx wrangler dev --config dist/server/wrangler.json   # Workers runtime asli
 ```
 
 > Catatan cache: di Workers, cache in-memory (`ssrCache`) bisa ter-reset antar

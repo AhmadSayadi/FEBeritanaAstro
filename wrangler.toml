@@ -1,23 +1,28 @@
-# Cloudflare Pages / Workers configuration for the Astro SSR site.
+# Cloudflare Workers configuration for the Astro SSR site.
 #
-# Why this file exists:
-#   The SSR worker imports Node-only libraries (notably sanitize-html and its
-#   htmlparser2 dependency chain, used to clean author HTML on the article and
-#   page routes). Cloudflare Workers only expose Node's built-in APIs when the
-#   `nodejs_compat` compatibility flag is on, so without this the article page
-#   would throw at runtime even though the build succeeds.
+# As of @astrojs/cloudflare v14 (Astro 7), the adapter targets Cloudflare
+# WORKERS with static assets (not the old Pages `_worker.js` model). The adapter
+# ALSO emits its own resolved config at dist/server/wrangler.json during build,
+# merging the values below. These two fields are the ones that matter for us:
 #
-# Build the worker with:  npm run build:cloudflare   (DEPLOY_TARGET=cloudflare)
-# Local runtime test:     npx wrangler pages dev dist
+#   nodejs_compat  — the SSR worker imports sanitize-html (cleans author HTML on
+#                    the article/pages routes), which needs Node built-ins.
+#                    Without it the article route throws at runtime.
+#   compatibility_date — pin so runtime behaviour is reproducible. >= 2024-09-23
+#                    is required for full Node compatibility.
 #
-# On Cloudflare Pages you can either rely on this file or set the same two
-# values in the dashboard (Settings → Functions → Compatibility flags/date).
+# Build + deploy:
+#   npm run build:cloudflare
+#   npx wrangler deploy            # from dist/server (adapter config), or via CI
+#
+# Local runtime test:
+#   npm run build:cloudflare
+#   npx wrangler dev               # run against dist/server/wrangler.json
+#
+# On Cloudflare's dashboard (Workers Builds / Git integration) set the same two
+# compatibility values if you don't deploy via this file.
 
 name = "beritana"
-pages_build_output_dir = "dist"
 
-# 2024-09-23 is the date from which Workers ship full Node.js compatibility
-# (process, Buffer, node:* built-ins) behind nodejs_compat. Any date >= this is
-# fine; keep it fixed so runtime behaviour is reproducible.
 compatibility_date = "2024-11-01"
 compatibility_flags = ["nodejs_compat"]
