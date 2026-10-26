@@ -23,7 +23,7 @@ declare global {
 }
 
 const ADSENSE_CLIENT =
-  process.env.NEXT_PUBLIC_ADSENSE_ID || 'ca-pub-2946511422357425'
+  process.env.PUBLIC_ADSENSE_ID || 'ca-pub-2946511422357425'
 
 /**
  * Google AdSense ad unit untuk Next.js App Router.

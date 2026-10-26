@@ -522,7 +522,7 @@ export function WriteArticlePage() {
           {/* URL slug — editable */}
           {(title || slug) && (
             <div className="mb-4 flex flex-wrap items-baseline gap-1 text-xs">
-              <span className="shrink-0 text-gray-500">{(process.env.NEXT_PUBLIC_SITE_URL || 'localhost:3000').replace(/^https?:\/\//, '')}/{category[0] || 'kategori'}/</span>
+              <span className="shrink-0 text-gray-500">{(process.env.PUBLIC_SITE_URL || 'localhost:3000').replace(/^https?:\/\//, '')}/{category[0] || 'kategori'}/</span>
               <input
                 type="text"
                 value={slug}

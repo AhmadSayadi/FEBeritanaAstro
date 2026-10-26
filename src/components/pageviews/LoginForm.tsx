@@ -87,7 +87,7 @@ export function LoginForm() {
       <button
         type="button"
         onClick={() => {
-          const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || 'https://cms.beritana.com/api').replace('/api', '')
+          const apiBase = (process.env.PUBLIC_API_BASE_URL || 'https://cms.beritana.com/api').replace('/api', '')
           window.location.href = `${apiBase}/auth/google`
         }}
         className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"

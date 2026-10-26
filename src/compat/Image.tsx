@@ -5,7 +5,7 @@
  * as-is. We render a plain <img> with the same attributes, preserving markup,
  * lazy-loading, priority (fetchpriority), blur placeholder, and SEO.
  *
- * Responsive upgrade (safe, opt-out via NEXT_PUBLIC_CDN_RESIZE): when the src is
+ * Responsive upgrade (safe, opt-out via PUBLIC_CDN_RESIZE): when the src is
  * a Cloudflare-proxied CDN image and the caller didn't supply its own srcSet,
  * we auto-generate a `srcset` via Cloudflare Image Resizing (format=auto →
  * AVIF/WebP) plus a sensible default `sizes`. When resizing is off, or for

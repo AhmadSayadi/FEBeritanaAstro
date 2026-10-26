@@ -2,8 +2,8 @@ import { Article } from './types'
 import { getDefaultConfig } from './site-config'
 import { getImageUrl } from './api'
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://beritana.com').replace(/\/$/, '').replace('://www.', '://')
-const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Beritana'
+const SITE_URL = (process.env.PUBLIC_SITE_URL || 'https://beritana.com').replace(/\/$/, '').replace('://www.', '://')
+const SITE_NAME = process.env.PUBLIC_SITE_NAME || 'Beritana'
 
 // Batas maksimal panjang articleBody dalam JSON-LD.
 // Konten penuh dimasukkan supaya Google bisa mengklasifikasikan artikel (Top Stories),

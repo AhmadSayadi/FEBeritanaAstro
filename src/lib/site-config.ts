@@ -110,11 +110,11 @@ let cacheTime = 0
 
 // Default config — used when backend is unavailable
 const defaultConfig: SiteConfig = {
-  site_name: process.env.NEXT_PUBLIC_SITE_NAME || 'Beritana',
+  site_name: process.env.PUBLIC_SITE_NAME || 'Beritana',
   site_title: 'Beritana - The Voice of Young Indonesian',
   site_description: 'Berita terbaru untuk anak muda seputar teknologi, politik, dan infografis menarik yang disajikan secara asik dan informatif. Tetap update dengan tren terkini dan informasi penting yang relevan bagi generasi muda.',
   site_keywords: 'berita anak muda, berita terkini, berita viral, informasi terbaru, gaya hidup',
-  site_url: process.env.NEXT_PUBLIC_SITE_URL || 'https://beritana.com',
+  site_url: process.env.PUBLIC_SITE_URL || 'https://beritana.com',
   site_email: 'beritananews@gmail.com',
   site_language: 'id_ID',
 
@@ -128,9 +128,9 @@ const defaultConfig: SiteConfig = {
   yandex_verification: '',
   pinterest_verification: '',
 
-  gtm_id: process.env.NEXT_PUBLIC_GTM_ID || '',
+  gtm_id: process.env.PUBLIC_GTM_ID || '',
   ga_id: '',
-  adsense_id: process.env.NEXT_PUBLIC_ADSENSE_ID || '',
+  adsense_id: process.env.PUBLIC_ADSENSE_ID || '',
 
   facebook_url: 'https://facebook.com/beritana',
   twitter_url: 'https://twitter.com/beritana',

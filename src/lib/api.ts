@@ -184,7 +184,7 @@ export async function apiFetchSafe<T>(
  *   https://cdn.beritana.com/cdn-cgi/image/width=640,format=auto,quality=80/<path>
  *
  * `format=auto` negotiates AVIF/WebP from the browser's Accept header (verified:
- * 320w drops a 57 KB WebP to ~10 KB AVIF). Toggle off with NEXT_PUBLIC_CDN_RESIZE
+ * 320w drops a 57 KB WebP to ~10 KB AVIF). Toggle off with PUBLIC_CDN_RESIZE
  * to serve originals untouched.
  * ────────────────────────────────────────────────────────────────────────── */
 
@@ -199,7 +199,7 @@ const CDN_RESIZE_WIDTHS = [160, 320, 640, 960, 1280] as const
 const CDN_RESIZE_QUALITY = 50
 
 function cdnBase(): string {
-  return (process.env.NEXT_PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com').replace(/\/$/, '')
+  return (process.env.PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com').replace(/\/$/, '')
 }
 
 /** True only for images actually served by the Cloudflare-proxied CDN. */
@@ -289,7 +289,7 @@ export function getImageSrcSet(
  *
  * Handles both relative (posts/2026/08/foto.webp) and absolute (https://...) URLs.
  *
- * When `options.width` is given and NEXT_PUBLIC_CDN_RESIZE is on, a CDN URL is
+ * When `options.width` is given and PUBLIC_CDN_RESIZE is on, a CDN URL is
  * returned through the Cloudflare /cdn-cgi/image/ transform at that width.
  * Without a width (or with resizing off) the original object URL is returned,
  * so existing call sites keep their current behaviour.

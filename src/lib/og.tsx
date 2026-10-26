@@ -62,7 +62,7 @@ interface BrandOgOptions {
  */
 export function brandOgImage(options: BrandOgOptions): Response {
   const color = options.color || BRAND_COLOR
-  const siteName = options.siteName || process.env.NEXT_PUBLIC_SITE_NAME || 'Beritana'
+  const siteName = options.siteName || process.env.PUBLIC_SITE_NAME || 'Beritana'
   const textColor = getTextColor(color)
   const bgEnd = darken(color, 0.35)
 
@@ -164,7 +164,7 @@ export function profileOgImage(options: ProfileOgOptions): Response {
   const name = options.name
   const role = options.role || ''
   const avatarUrl = options.avatarUrl || ''
-  const siteName = options.siteName || process.env.NEXT_PUBLIC_SITE_NAME || 'Beritana'
+  const siteName = options.siteName || process.env.PUBLIC_SITE_NAME || 'Beritana'
   const bgEnd = darken(BRAND_COLOR, 0.35)
 
   return withOgCache(new ImageResponse(
