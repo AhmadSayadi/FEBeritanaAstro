@@ -1,34 +1,45 @@
 # Cloudflare Workers configuration for the Astro SSR site.
 #
 # As of @astrojs/cloudflare v14 (Astro 7), the adapter targets Cloudflare
-# WORKERS with static assets (not the old Pages `_worker.js` model). The adapter
-# ALSO emits its own resolved config at dist/server/wrangler.json during build,
-# merging the values below. These two fields are the ones that matter for us:
-#
-#   nodejs_compat  — the SSR worker imports sanitize-html (cleans author HTML on
-#                    the article/pages routes), which needs Node built-ins.
-#                    Without it the article route throws at runtime.
-#   compatibility_date — pin so runtime behaviour is reproducible. >= 2024-09-23
-#                    is required for full Node compatibility.
+# WORKERS with static assets. The adapter emits its own resolved config at
+# dist/server/wrangler.json during build, MERGING the values below into it.
 #
 # Build + deploy:
 #   npm run build:cloudflare
-#   npx wrangler deploy            # from dist/server (adapter config), or via CI
-#
+#   npx wrangler deploy --config dist/server/wrangler.json
 # Local runtime test:
-#   npm run build:cloudflare
-#   npx wrangler dev               # run against dist/server/wrangler.json
-#
-# On Cloudflare's dashboard (Workers Builds / Git integration) set the same two
-# compatibility values if you don't deploy via this file.
+#   npx wrangler dev --config dist/server/wrangler.json
 
 name = "beritana"
 
-# `nodejs_compat_populate_process_env` is what copies the Worker's dashboard
-# environment variables/secrets (API_SECRET_KEY, API_BASE_URL, ...) into
-# `process.env` at RUNTIME. Without it, process.env is empty at runtime and
-# every backend call goes out without the API key, so the homepage/article data
-# comes back empty (the "stuck skeleton" bug). It's auto-enabled for dates
-# >= 2025-04-01, but we also list it explicitly so it's guaranteed regardless.
+# `nodejs_compat`                      — sanitize-html (article/pages) needs Node built-ins.
+# `nodejs_compat_populate_process_env` — copies the Worker's env vars/secrets into
+#                                        process.env at RUNTIME (auto for dates
+#                                        >= 2025-04-01; listed explicitly to be sure).
+# Without the populate flag, process.env is empty at runtime, backend calls go
+# out without the API key, and the homepage/article data comes back empty.
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat", "nodejs_compat_populate_process_env"]
+
+# CRITICAL: `wrangler deploy` DELETES all plain vars before re-applying them from
+# this file. Dashboard-set vars therefore vanish on every deploy (the bug we hit).
+# keep_vars = true stops that deletion, and the [vars] block below makes the
+# public (non-secret) config live in the repo so it is applied on every deploy
+# and never lost. SECRETS (API_SECRET_KEY, REVALIDATE_SECRET) are intentionally
+# NOT here — set them once in the dashboard as encrypted "Secret" type; encrypted
+# secrets are preserved across deploys.
+keep_vars = true
+
+[vars]
+NEXT_PUBLIC_SITE_URL = "https://beritana.com"
+NEXT_PUBLIC_SITE_NAME = "Beritana"
+API_BASE_URL = "https://cms.beritana.com/api"
+NEXT_PUBLIC_API_BASE_URL = "https://cms.beritana.com/api"
+NEXT_PUBLIC_CDN_BASE_URL = "https://cdn.beritana.com"
+NEXT_PUBLIC_CDN_RESIZE = "true"
+INDEXNOW_KEY = "d2f69834934f47d6a4b275828157361f"
+NEXT_PUBLIC_GA_ID = "G-3VJCT8XY04"
+NEXT_PUBLIC_ADSENSE_ID = "ca-pub-2946511422357425"
+NEXT_PUBLIC_GOOGLE_VERIFICATION = "Y1weLEBGBDzSszoEVxrN-BpUWgzfWTZ-osSPxlOWQKA"
+NEXT_PUBLIC_BING_VERIFICATION = "FFAF8AC37369E6F28D9B7AF16C7C9C8C"
+NEXT_PUBLIC_YANDEX_VERIFICATION = "92b1f3b311930a73"
