@@ -188,7 +188,10 @@ export async function apiFetchSafe<T>(
  * to serve originals untouched.
  * ────────────────────────────────────────────────────────────────────────── */
 
-const CDN_RESIZE_WIDTHS = [320, 640, 960, 1280] as const
+// Includes 160 so small thumbnail slots (e.g. 80px, which want ~160px on 2x
+// displays) don't download the 320w candidate — the browser picks the smallest
+// that satisfies `sizes`, cutting bytes on list/sidebar thumbnails.
+const CDN_RESIZE_WIDTHS = [160, 320, 640, 960, 1280] as const
 
 function cdnBase(): string {
   return (process.env.NEXT_PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com').replace(/\/$/, '')

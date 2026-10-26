@@ -6,7 +6,11 @@ interface ArticleBodyProps {
   inlineWidgets?: ReactNode[] // Multiple widgets (max 3) spread across article
 }
 
-const proseClasses = "prose prose-base max-w-none prose-p:text-gray-700 prose-a:text-primary prose-img:rounded-lg prose-blockquote:border-primary dark:prose-invert"
+// Note: `prose-p:text-gray-700` sets the body paragraph color, but it also
+// OVERRIDES `dark:prose-invert` for <p>, so without an explicit dark value the
+// paragraphs stay dark-gray and become unreadable in dark mode. The
+// `dark:prose-p:text-gray-300` pairs it with a light color for dark mode.
+const proseClasses = "prose prose-base max-w-none prose-p:text-gray-700 dark:prose-p:text-gray-300 prose-a:text-primary prose-img:rounded-lg prose-blockquote:border-primary dark:prose-invert"
 
 export function ArticleBody({ content, inlineWidget, inlineWidgets }: ArticleBodyProps) {
   // If no widgets at all, render plain
