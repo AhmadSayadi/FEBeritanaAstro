@@ -21,7 +21,6 @@ export function Header() {
   const [todayDate, setTodayDate] = useState('')
   const [cats, setCats] = useState<CategoryNav[]>([])
   const [catsLoading, setCatsLoading] = useState(true)
-  const [siteName, setSiteName] = useState('beritana')
   const [siteLogo, setSiteLogo] = useState(LOGO_CDN)
   const [socials, setSocials] = useState<{ facebook?: string; twitter?: string; instagram?: string; youtube?: string; tiktok?: string; linkedin?: string }>({})
   const pathname = usePathname()
@@ -46,7 +45,6 @@ export function Header() {
         if (!active || !data) return
         const cats = (data.categories as CategoryNav[] | undefined) || []
         if (cats.length > 0) setCats((data.header_categories as CategoryNav[] | undefined) || cats)
-        if (data.site_name) setSiteName(data.site_name)
         // Use API logo only if it exists & non-empty; otherwise keep the default.
         if (data.site_logo && typeof data.site_logo === 'string' && data.site_logo.trim() !== '') {
           setSiteLogo(data.site_logo)
@@ -136,7 +134,7 @@ export function Header() {
               <Link href="/">
                 <Image
                   src={siteLogo}
-                  alt={siteName}
+                  alt="Beritana"
                   width={180}
                   height={36}
                   className="h-8 w-auto sm:h-9"
