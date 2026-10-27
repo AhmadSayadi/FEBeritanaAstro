@@ -10,7 +10,11 @@
 # Local runtime test:
 #   npx wrangler dev --config dist/server/wrangler.json
 
-name = "beritana"
+# MUST match the Cloudflare Workers project that serves beritana.com. The
+# Workers Builds (Git) pipeline uses this name; a mismatch makes the
+# assets-upload-session step fail with API error 10013. The live worker (with
+# the beritana.com custom domain attached) is named "feberitanaastro".
+name = "feberitanaastro"
 
 # `nodejs_compat`                      — sanitize-html (article/pages) needs Node built-ins.
 # `nodejs_compat_populate_process_env` — copies the Worker's env vars/secrets into
