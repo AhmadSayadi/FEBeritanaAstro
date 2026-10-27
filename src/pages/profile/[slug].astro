@@ -17,6 +17,18 @@ import type { Article } from '@/lib/types'
 const { slug } = Astro.params
 const siteUrl = (SITE_URL_RAW || 'https://beritana.com').replace(/\/$/, '')
 
+/**
+ * Normalize a backend date to a valid ISO-8601 string for JSON-LD.
+ * Returns undefined if it can't be parsed — Google rejects an invalid
+ * datetime ("Invalid datetime value for dateCreated"), and omitting the field
+ * is valid, whereas a malformed value triggers the warning.
+ */
+function toIsoDate(raw: string | undefined | null): string | undefined {
+  if (!raw) return undefined
+  const d = new Date(raw)
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString()
+}
+
 let result
 try {
   result = await fetchAuthorProfile(slug!)
@@ -110,7 +122,9 @@ if (a) {
     url: `${siteUrl}/profile/${author.slug}`,
     name: `${author.name} - Penulis`,
     mainEntity: personSchema,
-    dateCreated: author.joined_at,
+    // Only emit dateCreated when joined_at parses to a valid date — an invalid
+    // value triggers Google's "Invalid datetime value for dateCreated".
+    dateCreated: toIsoDate(author.joined_at),
     inLanguage: 'id',
   }
 
