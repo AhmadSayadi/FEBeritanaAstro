@@ -22,6 +22,17 @@ export function HeroSection({ latestNews, sliderArticles }: HeroSectionProps) {
   const slides = sliderArticles?.slice(0, 5) || []
   const [current, setCurrent] = useState(0)
 
+  // The "views" badge is live data. Its value (and even whether it renders at
+  // all, via the `> 100` / `>= 1000` thresholds) can differ between the
+  // CDN-cached server HTML and the island props at hydration time, producing an
+  // intermittent React #418 (args[]=HTML) on the homepage. Gate the badge
+  // behind a client-only mount flag: first render (server AND client hydrate)
+  // omits it, so the markup matches; the badge then appears right after mount.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   const prev = useCallback(() => {
     setCurrent((c) => (c === 0 ? slides.length - 1 : c - 1))
   }, [slides.length])
@@ -82,7 +93,7 @@ export function HeroSection({ latestNews, sliderArticles }: HeroSectionProps) {
                       <h2 className="text-lg font-bold text-white sm:text-xl lg:text-2xl">
                         {slide.title}
                       </h2>
-                      {slide.views && slide.views > 100 && (
+                      {mounted && slide.views && slide.views > 100 && (
                         <span className="mt-1 inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-xs text-white backdrop-blur-sm">
                           <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
