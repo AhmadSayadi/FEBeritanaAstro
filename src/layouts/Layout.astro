@@ -160,32 +160,14 @@ const seoProps: SeoProps = {
       </>
     )}
 
-    {/* Google AdSense loader.
-        Loaded AFTER the page is idle (not a plain async <script> in <head>),
-        on purpose: AdSense Auto Ads injects <div class="google-auto-placed">
-        into the DOM — and if that happens before React hydrates its islands, it
-        shifts the server markup and triggers a hydration mismatch (React #418)
-        plus layout shift (CLS) on the homepage "Berita Terbaru" column. Deferring
-        the loader until after load lets React hydrate against the clean server
-        HTML first; Auto Ads then inject into an already-stable DOM. */}
+    {/* Google AdSense loader — standard async load so Auto Ads has enough time
+        to analyze the page and actually fill ad slots. (Deferring it to
+        requestIdleCallback made Auto Ads frequently show nothing.) */}
     {adsenseId && (
-      <script is:inline define:vars={{ adsenseId }}>
-        {`(function () {
-          function loadAds() {
-            var s = document.createElement('script');
-            s.async = true;
-            s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + adsenseId;
-            s.crossOrigin = 'anonymous';
-            document.head.appendChild(s);
-          }
-          function schedule() {
-            if ('requestIdleCallback' in window) requestIdleCallback(loadAds, { timeout: 3000 });
-            else setTimeout(loadAds, 1500);
-          }
-          if (document.readyState === 'complete') schedule();
-          else window.addEventListener('load', schedule, { once: true });
-        })();`}
-      </script>
+      <script
+        async
+        src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${adsenseId}`}
+        crossorigin="anonymous"></script>
     )}
 
     {/* Google Subscribe with Google (SWG) — News Publisher signal.
