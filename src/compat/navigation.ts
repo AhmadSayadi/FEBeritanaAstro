@@ -13,9 +13,15 @@ import { useEffect, useState, useCallback } from 'react'
 const isBrowser = typeof window !== 'undefined'
 
 export function usePathname(): string {
-  const [pathname, setPathname] = useState<string>(
-    isBrowser ? window.location.pathname : '/'
-  )
+  // IMPORTANT (hydration): the initializer runs on BOTH the SSR pass and the
+  // client's FIRST render. If we read window.location.pathname here, SSR gives
+  // '/' but the first client render gives the real path → React hydration
+  // mismatch (error #418) on every non-home page for any island that renders
+  // based on pathname (e.g. BottomNav active state). So we MUST start with the
+  // same value the server used ('/') and only switch to the real path AFTER
+  // mount, in useEffect. This two-pass render keeps the first client render
+  // byte-identical to the server HTML.
+  const [pathname, setPathname] = useState<string>('/')
 
   useEffect(() => {
     if (!isBrowser) return
@@ -29,9 +35,10 @@ export function usePathname(): string {
 }
 
 export function useSearchParams(): URLSearchParams {
-  const [params, setParams] = useState<URLSearchParams>(
-    isBrowser ? new URLSearchParams(window.location.search) : new URLSearchParams()
-  )
+  // Same two-pass rule as usePathname: start empty (SSR-safe), read the real
+  // query string only after mount, so the first client render matches the SSR
+  // HTML and doesn't trigger a hydration mismatch.
+  const [params, setParams] = useState<URLSearchParams>(new URLSearchParams())
 
   useEffect(() => {
     if (!isBrowser) return

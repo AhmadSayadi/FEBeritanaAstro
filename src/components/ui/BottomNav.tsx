@@ -22,7 +22,7 @@ export function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 ${isActive ? 'text-primary' : 'text-gray-600 dark:text-gray-300'}`}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 ${isActive ? 'text-primary' : 'text-gray-700 dark:text-gray-300'}`}
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">{item.icon}</svg>
               <span className="text-[10px] font-medium">{item.label}</span>
