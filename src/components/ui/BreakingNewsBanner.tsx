@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname } from '@/compat/navigation'
 import { BreakingNews } from './BreakingNews'
+import { getNavigation } from '@/lib/navigation-cache'
 
 interface BreakingItem {
   title: string
@@ -21,15 +22,16 @@ export function BreakingNewsBanner({ initialItems = [] }: { initialItems?: Break
   const [categoryColors, setCategoryColors] = useState<CategoryColor[]>([])
   const pathname = usePathname()
 
-  // Fetch category colors from navigation API
+  // Category colors from the shared navigation cache (no extra network call —
+  // reuses the payload Header already fetched).
   useEffect(() => {
-    fetch('/api/navigation')
-      .then(res => res.json())
-      .then(data => {
-        const cats = data?.header_categories || data?.categories || []
-        setCategoryColors(cats.map((c: { slug: string; color: string }) => ({ slug: c.slug, color: c.color })))
-      })
-      .catch(() => {})
+    let active = true
+    getNavigation().then(data => {
+      if (!active || !data) return
+      const cats = (data.header_categories || data.categories || []) as { slug: string; color?: string }[]
+      setCategoryColors(cats.map((c) => ({ slug: c.slug, color: c.color || '' })))
+    })
+    return () => { active = false }
   }, [])
 
   // Detect category from URL

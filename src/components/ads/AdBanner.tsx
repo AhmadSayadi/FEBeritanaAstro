@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { getNavigation } from '@/lib/navigation-cache'
 
 interface AdData {
   id: number
@@ -44,10 +45,10 @@ export function AdBanner({ posisi, category, className = '' }: AdBannerProps) {
     const cached = sessionStorage.getItem('ads_enabled')
     if (cached === 'false') { setLoaded(true); return }
 
-    // If not cached yet, fetch settings to check
+    // If not cached yet, read the shared navigation payload (no extra network
+    // call — reuses what Header fetched) to check whether ads are enabled.
     if (!cached) {
-      fetch('/api/navigation')
-        .then(res => res.json())
+      getNavigation()
         .then(data => {
           const enabled = data?.ads_enabled !== false
           sessionStorage.setItem('ads_enabled', String(enabled))

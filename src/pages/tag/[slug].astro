@@ -68,6 +68,23 @@ const breadcrumbSchema = buildBreadcrumbSchema([
   { name: 'Beranda', url: siteUrl },
   { name: `Tag: ${tagName}`, url: `${siteUrl}/tag/${slug}` },
 ])
+
+// Windowed pagination: first, last, and current ±2, with '…' gaps. Avoids
+// emitting thousands of <a> on popular tags (HTML bloat + crawl dilution).
+function buildPageWindow(current: number, total: number): (number | '…')[] {
+  const out: (number | '…')[] = []
+  const add = (n: number) => { if (!out.includes(n) && n >= 1 && n <= total) out.push(n) }
+  const pages = new Set<number>([1, total, current - 1, current, current + 1, 2, total - 1])
+  const sorted = [...pages].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
+  let prev = 0
+  for (const n of sorted) {
+    if (prev && n - prev > 1) out.push('…')
+    add(n)
+    prev = n
+  }
+  return out
+}
+const pageWindow = buildPageWindow(page, totalPages)
 ---
 <Layout seo={seo}>
   <JsonLd schema={breadcrumbSchema} />
@@ -87,19 +104,23 @@ const breadcrumbSchema = buildBreadcrumbSchema([
     )}
 
     {totalPages > 1 && (
-      <nav aria-label="Pagination" class="mt-8 flex justify-center gap-2">
-        {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-          <a
-            href={p === 1 ? `/tag/${slug}` : `/tag/${slug}?page=${p}`}
-            class={`flex h-10 w-10 items-center justify-center rounded ${
-              p === page
-                ? 'bg-primary text-white'
-                : 'border border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
-            }`}
-            aria-current={p === page ? 'page' : undefined}
-          >
-            {p}
-          </a>
+      <nav aria-label="Pagination" class="mt-8 flex flex-wrap justify-center gap-2">
+        {pageWindow.map((p) => (
+          p === '…' ? (
+            <span class="flex h-10 w-10 items-center justify-center text-gray-400">…</span>
+          ) : (
+            <a
+              href={p === 1 ? `/tag/${slug}` : `/tag/${slug}?page=${p}`}
+              class={`flex h-10 w-10 items-center justify-center rounded ${
+                p === page
+                  ? 'bg-primary text-white'
+                  : 'border border-gray-300 text-gray-700 hover:border-primary hover:text-primary'
+              }`}
+              aria-current={p === page ? 'page' : undefined}
+            >
+              {p}
+            </a>
+          )
         ))}
       </nav>
     )}

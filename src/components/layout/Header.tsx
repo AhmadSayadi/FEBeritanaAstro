@@ -7,6 +7,12 @@ import { usePathname } from '@/compat/navigation'
 import { CategoryNav } from '@/lib/site-config'
 import { DarkModeToggle } from '@/components/ui/DarkModeToggle'
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete'
+import { getNavigation } from '@/lib/navigation-cache'
+
+// Header logo served from the CDN. Fallback to the bundled local asset if the
+// CDN request fails (see onError), so the logo never disappears.
+const LOGO_CDN = 'https://cdn.beritana.com/logo/logo.webp'
+const LOGO_LOCAL = '/images/logo.webp'
 
 export function Header() {
   const [searchOpen, setSearchOpen] = useState(false)
@@ -16,7 +22,7 @@ export function Header() {
   const [cats, setCats] = useState<CategoryNav[]>([])
   const [catsLoading, setCatsLoading] = useState(true)
   const [siteName, setSiteName] = useState('beritana')
-  const [siteLogo, setSiteLogo] = useState('/images/logo.webp')
+  const [siteLogo, setSiteLogo] = useState(LOGO_CDN)
   const [socials, setSocials] = useState<{ facebook?: string; twitter?: string; instagram?: string; youtube?: string; tiktok?: string; linkedin?: string }>({})
   const pathname = usePathname()
 
@@ -31,21 +37,24 @@ export function Header() {
     setTodayDate(new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
   }, [])
 
-  // Fetch nav config from API on mount
+  // Fetch nav config on mount via the shared deduped cache (one network call
+  // per tab, shared with BreakingNewsBanner/AdBanner).
   useEffect(() => {
-    fetch('/api/navigation')
-      .then(res => res.json())
+    let active = true
+    getNavigation()
       .then(data => {
-        if (data.categories?.length > 0) setCats(data.header_categories || data.categories)
+        if (!active || !data) return
+        const cats = (data.categories as CategoryNav[] | undefined) || []
+        if (cats.length > 0) setCats((data.header_categories as CategoryNav[] | undefined) || cats)
         if (data.site_name) setSiteName(data.site_name)
-        // Use API logo only if it exists & non-empty; otherwise keep default /images/logo.png
+        // Use API logo only if it exists & non-empty; otherwise keep the default.
         if (data.site_logo && typeof data.site_logo === 'string' && data.site_logo.trim() !== '') {
           setSiteLogo(data.site_logo)
         }
         if (data.social) setSocials(data.social)
       })
-      .catch(() => {})
-      .finally(() => setCatsLoading(false))
+      .finally(() => { if (active) setCatsLoading(false) })
+    return () => { active = false }
   }, [])
 
   // Hide top bar on scroll
@@ -131,9 +140,10 @@ export function Header() {
                   width={180}
                   height={36}
                   className="h-8 w-auto sm:h-9"
-                  priority
+                  loading="eager"
+                  fetchPriority="low"
                   unoptimized
-                  onError={() => setSiteLogo('/images/logo.webp')}
+                  onError={() => setSiteLogo(LOGO_LOCAL)}
                 />
               </Link>
               {activeCat && (
@@ -238,7 +248,7 @@ export function Header() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4">
               <Link href="/" onClick={() => setMobileMenuOpen(false)}>
-                <Image src="/images/logo.webp" alt="beritana" width={140} height={28} className="h-7 w-auto dark:brightness-0 dark:invert" />
+                <Image src={LOGO_CDN} alt="beritana" width={140} height={28} className="h-7 w-auto dark:brightness-0 dark:invert" />
               </Link>
               <button aria-label="Tutup menu" className="p-2 text-gray-400 hover:text-gray-900 dark:hover:text-white" onClick={() => setMobileMenuOpen(false)}>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

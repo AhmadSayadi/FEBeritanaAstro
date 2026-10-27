@@ -118,8 +118,8 @@ const defaultConfig: SiteConfig = {
   site_email: 'beritananews@gmail.com',
   site_language: 'id_ID',
 
-  site_logo: '/images/logo.webp',
-  site_logo_footer: '/images/logo.webp',
+  site_logo: 'https://cdn.beritana.com/logo/logo.webp',
+  site_logo_footer: 'https://cdn.beritana.com/logo/logo.webp',
   site_thumbnail: '/images/thumbnail_home.png',
   site_favicon: '/images/favicon.png',
 
