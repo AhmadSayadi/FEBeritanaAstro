@@ -140,7 +140,7 @@ export function PollSection({ initialPoll }: { initialPoll?: Poll }) {
                 {poll.expires_at && (
                   <>
                     <span>·</span>
-                    <span>{formatExpiry(poll.expires_at)}</span>
+                    <span suppressHydrationWarning>{formatExpiry(poll.expires_at)}</span>
                   </>
                 )}
               </div>

@@ -154,7 +154,7 @@ export function EKoranSection({ items, backgroundUrl }: EKoranSectionProps) {
                   <h3 className="line-clamp-2 text-sm font-medium text-white">
                     {item.title}
                   </h3>
-                  <time className="mt-0.5 block text-xs text-gray-400">
+                  <time className="mt-0.5 block text-xs text-gray-400" suppressHydrationWarning>
                     {formatRelativeDate(item.date)}
                   </time>
                 </div>
@@ -183,7 +183,7 @@ export function EKoranSection({ items, backgroundUrl }: EKoranSectionProps) {
               </button>
               <div>
                 <h2 className="text-sm font-bold text-white">{selectedItem.title}</h2>
-                <p className="text-xs text-gray-400">{formatRelativeDate(selectedItem.date)}</p>
+                <p className="text-xs text-gray-400" suppressHydrationWarning>{formatRelativeDate(selectedItem.date)}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">

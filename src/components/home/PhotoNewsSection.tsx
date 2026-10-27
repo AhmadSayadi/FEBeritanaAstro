@@ -102,7 +102,7 @@ export function PhotoNewsSection({ articles }: PhotoNewsSectionProps) {
               <h3 className="line-clamp-2 text-sm font-semibold leading-tight text-white">
                 {article.title}
               </h3>
-              <time dateTime={article.published_at} className="mt-1 block text-xs text-gray-300">
+              <time dateTime={article.published_at} className="mt-1 block text-xs text-gray-300" suppressHydrationWarning>
                 {formatRelativeDate(article.published_at)}
               </time>
             </div>
