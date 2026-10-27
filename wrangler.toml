@@ -36,7 +36,10 @@ PUBLIC_SITE_NAME = "Beritana"
 API_BASE_URL = "https://cms.beritana.com/api"
 PUBLIC_API_BASE_URL = "https://cms.beritana.com/api"
 PUBLIC_CDN_BASE_URL = "https://cdn.beritana.com"
-PUBLIC_CDN_RESIZE = "true"
+# false: free-tier Image Resizing quota (5k unique transforms/mo) is exhausted —
+# /cdn-cgi/image/ returns 9422/429 and images break. Serve the backend-optimized
+# originals instead. Flip to "true" only after upgrading the Cloudflare plan.
+PUBLIC_CDN_RESIZE = "false"
 # Feature toggles — set to "true" to render again (no code change needed).
 PUBLIC_ENABLE_ADS = "false"
 PUBLIC_ENABLE_LIVE_EVENT = "false"
