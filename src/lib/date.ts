@@ -49,7 +49,9 @@ export function timeAgoID(dateString: string): string {
 /** Tanggal lengkap: "Senin, 3 September 2026" */
 export function formatDateID(dateString: string): string {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('id-ID', {
+  const date = parseApiDate(dateString)
+  if (isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('id-ID', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -61,7 +63,9 @@ export function formatDateID(dateString: string): string {
 /** Tanggal + jam: "Senin, 3 September 2026 pukul 14.30" */
 export function formatDateTimeID(dateString: string): string {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('id-ID', {
+  const date = parseApiDate(dateString)
+  if (isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('id-ID', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
@@ -75,7 +79,9 @@ export function formatDateTimeID(dateString: string): string {
 /** Tanggal ringkas: "3 Sep 2026" */
 export function formatDateShortID(dateString: string): string {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString('id-ID', {
+  const date = parseApiDate(dateString)
+  if (isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('id-ID', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
@@ -86,7 +92,7 @@ export function formatDateShortID(dateString: string): string {
 /** Byline ringkas: "5 Okt 2026 10:23" (bulan singkat, tanpa hari, tanpa "pukul"). */
 export function formatBylineDateTimeID(dateString: string): string {
   if (!dateString) return ''
-  const date = new Date(dateString)
+  const date = parseApiDate(dateString)
   if (isNaN(date.getTime())) return ''
   const datePart = date.toLocaleDateString('id-ID', {
     day: 'numeric',
