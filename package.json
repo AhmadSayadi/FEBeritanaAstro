@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "astro build --config astro.config.reactdev.mjs",
     "build:cloudflare": "astro build",
     "preview": "wrangler dev --config dist/server/wrangler.json",
     "deploy": "astro build && wrangler deploy --config dist/server/wrangler.json",

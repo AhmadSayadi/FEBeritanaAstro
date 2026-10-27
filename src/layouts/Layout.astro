@@ -38,6 +38,10 @@ import {
   ENABLE_LIVE_EVENT,
 } from '@/lib/env'
 
+// TEMPORARY: hydration tracing. Enabled only when PUBLIC_HYDRATION_TRACE=1
+// (set by astro.config.reactdev.mjs). No effect on the normal production build.
+const HYDRATION_TRACE = process.env.PUBLIC_HYDRATION_TRACE === '1'
+
 interface Props {
   /** Per-page SEO. Site-wide defaults are filled in below. */
   seo?: SeoProps
@@ -204,5 +208,55 @@ const seoProps: SeoProps = {
         }
       })();
     </script>
+
+    {/* TEMPORARY hydration tracer — only emitted when PUBLIC_HYDRATION_TRACE=1.
+        Records each island's server node count, then on the #418 error reports
+        which island(s) React regenerated (node count changed) = the culprit. */}
+    {HYDRATION_TRACE && (
+      <script is:inline set:html={`
+      (function () {
+        function snap() {
+          var out = [];
+          document.querySelectorAll('astro-island').forEach(function (el, i) {
+            out.push({
+              i: i,
+              name: el.getAttribute('component-export') || '?',
+              nodes: el.querySelectorAll('*').length,
+              html: el.innerHTML.length
+            });
+          });
+          return out;
+        }
+        var before = snap();
+        console.log('%c[HYDRATION] islands at load:', 'color:#09f;font-weight:bold');
+        before.forEach(function (b) { console.log('  island[' + b.i + '] ' + b.name + '  nodes=' + b.nodes + '  htmlLen=' + b.html); });
+
+        function report(tag) {
+          var after = snap();
+          console.log('%c[HYDRATION] ' + tag + ' — islands that React REGENERATED:', 'color:#e00;font-weight:bold');
+          var found = false;
+          after.forEach(function (a) {
+            var b = before[a.i];
+            if (b && (b.nodes !== a.nodes || Math.abs(b.html - a.html) > 4)) {
+              found = true;
+              console.log('  >>> island[' + a.i + '] ' + a.name + '  nodes ' + (b ? b.nodes : '?') + ' -> ' + a.nodes + '  (htmlLen ' + (b?b.html:'?') + ' -> ' + a.html + ')');
+            }
+          });
+          if (!found) console.log('  (no island node-count change detected yet)');
+        }
+
+        window.addEventListener('error', function (e) {
+          var msg = (e && e.message) || '';
+          if (/Minified React error #418|#418|hydrat/i.test(msg)) {
+            console.log('%c[HYDRATION] #418 fired!', 'color:#e00;font-weight:bold');
+            report('on-error');
+            setTimeout(function () { report('200ms-after-error'); }, 200);
+          }
+        });
+        // Also report shortly after load regardless, to catch silent regen.
+        setTimeout(function () { report('1s-after-load'); }, 1000);
+      })();
+      `}></script>
+    )}
   </body>
 </html>
