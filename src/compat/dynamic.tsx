@@ -35,27 +35,55 @@ export default function dynamic<P extends object = Record<string, unknown>>(
   options: DynamicOptions = {}
 ): React.ComponentType<P> {
   const { ssr = true, loading } = options
-  const LazyComp = lazy(normalize(loader))
   const Fallback = () => <>{loading ? loading() : null}</>
 
-  const DynamicComponent: React.FC<P> = (props) => {
-    const [mounted, setMounted] = useState(ssr)
+  // ─── ssr: false ───────────────────────────────────────────────────────────
+  // Client-only widget. We deliberately AVOID React.lazy + <Suspense> here.
+  //
+  // Why: these components live inside an Astro island that is HYDRATED. During
+  // hydration, React's production build treats a <Suspense> boundary far more
+  // strictly than the dev build — if the boundary's fallback doesn't line up
+  // byte-for-byte with the server-rendered markers, production throws a
+  // hydration mismatch (minified React #418, args[]=HTML) and regenerates the
+  // subtree, while the dev build stays silent. That's exactly the
+  // production-only #418 we saw on article pages (mobile).
+  //
+  // Instead we render the SAME fallback on the server and on the client's first
+  // render (no Suspense boundary at all), then load the real module in a
+  // useEffect (client-only) and swap it in. First render is identical on both
+  // sides → no mismatch. This preserves Next's `ssr:false` behaviour.
+  if (!ssr) {
+    const ClientOnly: React.FC<P> = (props) => {
+      const [Comp, setComp] = useState<React.ComponentType<P> | null>(null)
 
-    useEffect(() => {
-      if (!ssr) setMounted(true)
-    }, [])
+      useEffect(() => {
+        let alive = true
+        normalize(loader)()
+          .then((mod) => {
+            if (alive) setComp(() => mod.default)
+          })
+          .catch(() => {
+            /* leave the fallback in place on load failure */
+          })
+        return () => {
+          alive = false
+        }
+      }, [])
 
-    if (!mounted) {
-      // ssr:false → render the loading fallback until mounted on the client.
-      return <Fallback />
+      if (!Comp) return <Fallback />
+      return <Comp {...(props as P)} />
     }
-
-    return (
-      <Suspense fallback={<Fallback />}>
-        <LazyComp {...(props as P)} />
-      </Suspense>
-    )
+    return ClientOnly as React.ComponentType<P>
   }
 
+  // ─── ssr: true (default) ────────────────────────────────────────────────
+  // Server-rendered. React.lazy + Suspense is fine here because the component
+  // is part of the SSR output and its markup matches on hydration.
+  const LazyComp = lazy(normalize(loader))
+  const DynamicComponent: React.FC<P> = (props) => (
+    <Suspense fallback={<Fallback />}>
+      <LazyComp {...(props as P)} />
+    </Suspense>
+  )
   return DynamicComponent as React.ComponentType<P>
 }
