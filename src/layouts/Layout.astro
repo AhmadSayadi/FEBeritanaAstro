@@ -126,7 +126,14 @@ const seoProps: SeoProps = {
         the critical load path. Header stays client:load (search/menu must be
         interactive early). */}
     {ENABLE_LIVE_EVENT && <LiveEventBadge initialEvent={liveEvent} client:idle />}
-    <Header client:load />
+    {/* Seed the header nav from server config so the category bar renders in
+        SSR HTML (no skeleton, no blocking /api/navigation hop on the critical
+        path). The client still refreshes nav via getNavigation() afterwards. */}
+    <Header
+      initialCategories={config.categories || []}
+      initialLogo={config.site_logo || undefined}
+      client:load
+    />
     <BreakingNewsBanner initialItems={breakingItems} client:idle />
 
     <main id="main-content">

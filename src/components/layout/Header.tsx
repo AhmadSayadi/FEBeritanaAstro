@@ -14,15 +14,35 @@ import { getNavigation } from '@/lib/navigation-cache'
 const LOGO_CDN = 'https://cdn.beritana.com/logo/logo.webp'
 const LOGO_LOCAL = '/images/logo.webp'
 
-export function Header() {
+interface HeaderSocials {
+  facebook?: string
+  twitter?: string
+  instagram?: string
+  youtube?: string
+  tiktok?: string
+  linkedin?: string
+}
+
+interface HeaderProps {
+  /** Categories from server config (Layout.astro) — seeds the nav so it renders
+   *  in SSR HTML instead of waiting for the client /api/navigation fetch. */
+  initialCategories?: CategoryNav[]
+  initialLogo?: string
+  initialSocials?: HeaderSocials
+}
+
+export function Header({ initialCategories = [], initialLogo, initialSocials = {} }: HeaderProps = {}) {
   const [searchOpen, setSearchOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [todayDate, setTodayDate] = useState('')
-  const [cats, setCats] = useState<CategoryNav[]>([])
-  const [catsLoading, setCatsLoading] = useState(true)
-  const [siteLogo, setSiteLogo] = useState(LOGO_CDN)
-  const [socials, setSocials] = useState<{ facebook?: string; twitter?: string; instagram?: string; youtube?: string; tiktok?: string; linkedin?: string }>({})
+  const [cats, setCats] = useState<CategoryNav[]>(initialCategories)
+  // Nav is "loading" only if the server gave us nothing to render yet.
+  const [catsLoading, setCatsLoading] = useState(initialCategories.length === 0)
+  const [siteLogo, setSiteLogo] = useState(
+    initialLogo && initialLogo.trim() !== '' ? initialLogo : LOGO_CDN
+  )
+  const [socials, setSocials] = useState<HeaderSocials>(initialSocials)
   const pathname = usePathname()
 
   // Close search & mobile menu on route change
