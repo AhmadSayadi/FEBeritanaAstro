@@ -56,6 +56,22 @@ const isOn = (key: string) => {
 export const ENABLE_ADS = isOn('PUBLIC_ENABLE_ADS')
 export const ENABLE_LIVE_EVENT = isOn('PUBLIC_ENABLE_LIVE_EVENT')
 
+// CDN cache TTLs (seconds) for the middleware Cache-Control headers. Tunable via
+// env so freshness can be adjusted WITHOUT a code change — just update the var
+// in wrangler.toml [vars] (or the dashboard) and redeploy.
+//   LISTING_TTL = how long listings (homepage, category, tag, ...) stay "fresh"
+//                 at the CDN before the Worker recomputes. Lower = newer
+//                 articles appear sooner, but the Worker runs more often
+//                 (watch the free-tier request budget). 30s is fine at low/med
+//                 traffic; raise toward 120 if Worker invocations get tight.
+//   ARTICLE_TTL = same idea for article detail pages (content rarely changes).
+const num = (key: string, fallback: number) => {
+  const n = parseInt(env(key, ''), 10)
+  return Number.isFinite(n) && n >= 0 ? n : fallback
+}
+export const LISTING_TTL = num('LISTING_TTL', 30)
+export const ARTICLE_TTL = num('ARTICLE_TTL', 600)
+
 export const REVALIDATE_SECRET = env('REVALIDATE_SECRET', '')
 export const INDEXNOW_KEY = env('INDEXNOW_KEY', '')
 export const GA_ID = env('PUBLIC_GA_ID', '')

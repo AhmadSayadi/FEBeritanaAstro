@@ -16,6 +16,8 @@ import { defineMiddleware } from 'astro:middleware'
  * rewrites here — static routes win over the catch-alls by route priority.
  */
 
+import { LISTING_TTL, ARTICLE_TTL } from '@/lib/env'
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://adservice.google.com https://tpc.googlesyndication.com https://www.instagram.com https://platform.twitter.com https://www.tiktok.com https://connect.facebook.net https://www.threads.net https://www.youtube.com https://news.google.com https://*.adtrafficquality.google https://static.cloudflareinsights.com",
@@ -85,7 +87,7 @@ function htmlCacheControl(pathname: string, status: number): string | null {
     pathname.startsWith('/berita/') ||
     (/^\/[^/]+\/[^/]+$/.test(pathname) && !NON_ARTICLE_2SEG.test(pathname))
   ) {
-    return 'public, max-age=0, s-maxage=600, stale-while-revalidate=86400'
+    return `public, max-age=0, s-maxage=${ARTICLE_TTL}, stale-while-revalidate=86400`
   }
 
   // CMS pages + author profiles — change infrequently.
@@ -95,9 +97,9 @@ function htmlCacheControl(pathname: string, status: number): string | null {
 
   // Listing pages that must surface new articles reasonably fast: homepage,
   // categories, tag, foto, video, stories, infografis, ekoran, leaderboard.
-  // 120s fresh means a new article shows within ~2 min; SWR keeps it instant
-  // and cheap in between.
-  return 'public, max-age=0, s-maxage=120, stale-while-revalidate=600'
+  // TTL is env-tunable (LISTING_TTL, default 30s): a new article shows within
+  // ~that window; SWR keeps responses instant and cheap in between.
+  return `public, max-age=0, s-maxage=${LISTING_TTL}, stale-while-revalidate=600`
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {

@@ -47,6 +47,11 @@ PUBLIC_CDN_RESIZE = "false"
 # Feature toggles — set to "true" to render again (no code change needed).
 PUBLIC_ENABLE_ADS = "false"
 PUBLIC_ENABLE_LIVE_EVENT = "false"
+# CDN cache freshness (seconds). Change here + redeploy to tune without touching
+# code. LISTING_TTL = homepage/category/tag etc; lower = fresher but more Worker
+# runs (free-tier budget). ARTICLE_TTL = article detail pages.
+LISTING_TTL = "30"
+ARTICLE_TTL = "600"
 INDEXNOW_KEY = "d2f69834934f47d6a4b275828157361f"
 PUBLIC_GA_ID = "G-3VJCT8XY04"
 PUBLIC_ADSENSE_ID = "ca-pub-2946511422357425"
