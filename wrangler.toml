@@ -44,6 +44,9 @@ PUBLIC_CDN_BASE_URL = "https://cdn.beritana.com"
 # /cdn-cgi/image/ returns 9422/429 and images break. Serve the backend-optimized
 # originals instead. Flip to "true" only after upgrading the Cloudflare plan.
 PUBLIC_CDN_RESIZE = "false"
+# Image resize provider: off | cdn | wsrv. "wsrv" = images.weserv.nl free
+# unlimited proxy. Set "off" to serve originals untouched.
+PUBLIC_IMG_RESIZE_PROVIDER = "wsrv"
 # Feature toggles — set to "true" to render again (no code change needed).
 PUBLIC_ENABLE_ADS = "false"
 PUBLIC_ENABLE_LIVE_EVENT = "false"

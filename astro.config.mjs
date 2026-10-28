@@ -61,6 +61,7 @@ export default defineConfig({
       'process.env.PUBLIC_API_BASE_URL': JSON.stringify(process.env.PUBLIC_API_BASE_URL || 'https://cms.beritana.com/api'),
       'process.env.PUBLIC_CDN_BASE_URL': JSON.stringify(process.env.PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com'),
       'process.env.PUBLIC_CDN_RESIZE': JSON.stringify(process.env.PUBLIC_CDN_RESIZE || ''),
+      'process.env.PUBLIC_IMG_RESIZE_PROVIDER': JSON.stringify(process.env.PUBLIC_IMG_RESIZE_PROVIDER || ''),
       'process.env.PUBLIC_ENABLE_ADS': JSON.stringify(process.env.PUBLIC_ENABLE_ADS || ''),
       'process.env.PUBLIC_ENABLE_LIVE_EVENT': JSON.stringify(process.env.PUBLIC_ENABLE_LIVE_EVENT || ''),
       'process.env.PUBLIC_GA_ID': JSON.stringify(process.env.PUBLIC_GA_ID || ''),

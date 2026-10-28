@@ -4,7 +4,7 @@
  * Authenticated requests also need Authorization: Bearer {token}
  */
 
-import { env, CDN_RESIZE_ENABLED } from './env'
+import { env, CDN_RESIZE_ENABLED, IMG_RESIZE_PROVIDER } from './env'
 
 // Read per-call, NOT frozen at module load. On Cloudflare Workers the runtime
 // env (process.env, populated from dashboard vars) may not be ready at module
@@ -193,10 +193,11 @@ export async function apiFetchSafe<T>(
 // that satisfies `sizes`, cutting bytes on list/sidebar thumbnails.
 const CDN_RESIZE_WIDTHS = [160, 320, 640, 960, 1280] as const
 
-// Default compression quality for the CDN transform. AVIF/WebP at 65 is
-// visually close to the original for news thumbnails/heroes but much smaller
-// than 80 (Lighthouse flagged the 80 files as compressible). Tune here once.
-const CDN_RESIZE_QUALITY = 50
+// Default compression quality for the resize transform. WebP at 70 is
+// visually close to the original for news photos (faces/text stay crisp)
+// while still cutting ~72% off the original bytes. q50 saved a bit more
+// but risked visible softening; q70 is the safe sweet spot. Tune here once.
+const CDN_RESIZE_QUALITY = 70
 
 function cdnBase(): string {
   return (process.env.PUBLIC_CDN_BASE_URL || 'https://cdn.beritana.com').replace(/\/$/, '')
@@ -226,20 +227,62 @@ export function stripCdnResize(url: string): string {
 }
 
 /**
- * Wrap a CDN image URL in a /cdn-cgi/image/ transform. No-op (returns the input)
- * when resizing is disabled, the URL isn't a CDN URL, or it's already a
- * transform URL.
+ * Reverse a wsrv.nl proxy URL back to the plain object URL (reads the `url`
+ * query param and re-adds https://). No-op if not a wsrv URL.
+ */
+export function stripWsrv(url: string): string {
+  if (!url.includes('wsrv.nl')) return url
+  try {
+    const u = new URL(url)
+    const src = u.searchParams.get('url')
+    if (!src) return url
+    return src.startsWith('http') ? src : `https://${src}`
+  } catch {
+    return url
+  }
+}
+
+/**
+ * images.weserv.nl free resize proxy:
+ *   https://wsrv.nl/?url=<host/path>&w=640&output=webp&q=50
+ * `url` must be WITHOUT the scheme (wsrv prepends https://). `output=webp`
+ * negotiates a modern format; `we=1` (without-enlargement) avoids upscaling.
+ */
+function buildWsrvUrl(cdnUrl: string, width: number, quality: number): string {
+  // wsrv wants the source as "host/path" (no scheme).
+  const noScheme = cdnUrl.replace(/^https?:\/\//, '')
+  const params = new URLSearchParams({
+    url: noScheme,
+    w: String(width),
+    output: 'webp',
+    q: String(quality),
+    we: '1',
+  })
+  return `https://wsrv.nl/?${params.toString()}`
+}
+
+/**
+ * Resize a CDN image URL to `width` using the configured provider
+ * (IMG_RESIZE_PROVIDER). No-op (returns the input) when the provider is 'off',
+ * the URL isn't a CDN URL, or it's already a transform URL.
+ *
+ * Name kept as `buildCdnResizeUrl` for backward compatibility with existing
+ * call sites and getImageSrcSet.
  */
 export function buildCdnResizeUrl(
   url: string,
   width: number,
   quality = CDN_RESIZE_QUALITY
 ): string {
-  if (!CDN_RESIZE_ENABLED) return url
+  if (IMG_RESIZE_PROVIDER === 'off') return url
   if (!isCdnUrl(url)) return url
-  if (url.includes('/cdn-cgi/image/')) return url
+  if (url.includes('/cdn-cgi/image/') || url.includes('wsrv.nl')) return url
 
-  // Split origin from the object path: https://cdn.beritana.com/<path>
+  if (IMG_RESIZE_PROVIDER === 'wsrv') {
+    return buildWsrvUrl(url, width, quality)
+  }
+
+  // provider === 'cdn' → Cloudflare Image Resizing (/cdn-cgi/image/)
   const base = cdnBase()
   let path = url
   if (url.startsWith(base)) path = url.slice(base.length)
@@ -261,23 +304,24 @@ export function getImageSrcSet(
   widths: readonly number[] = CDN_RESIZE_WIDTHS,
   quality = CDN_RESIZE_QUALITY
 ): string {
-  if (!url || !CDN_RESIZE_ENABLED) return ''
+  if (!url || IMG_RESIZE_PROVIDER === 'off') return ''
   let raw = url.trim()
   if (raw === '') return ''
 
   // Callers often pass an already-transformed URL (getImageUrl({width})).
   // Recover the plain object URL so we can emit multiple widths from it.
   if (raw.includes('/cdn-cgi/image/')) raw = stripCdnResize(raw)
+  else if (raw.includes('wsrv.nl')) raw = stripWsrv(raw)
 
   // Local /public assets (logo, fallback, static icons) and data URIs are NOT
-  // on the CDN — never rewrite them to /cdn-cgi/image/ (that path 404s).
+  // on the CDN — never rewrite them (those paths would 404 / break).
   if (raw.startsWith('/') || raw.startsWith('data:')) return ''
   // Only CDN-hosted media (absolute cdn.beritana.com URL, or a bare backend
   // storage path like "media/..." / "posts/...") is transformable.
   if (raw.startsWith('http') && !isCdnUrl(raw)) return ''
 
   const resolved = getImageUrl(raw)
-  if (!isCdnUrl(resolved) || resolved.includes('/cdn-cgi/image/')) return ''
+  if (!isCdnUrl(resolved) || resolved.includes('/cdn-cgi/image/') || resolved.includes('wsrv.nl')) return ''
   return widths
     .map((w) => `${buildCdnResizeUrl(resolved, w, quality)} ${w}w`)
     .join(', ')
