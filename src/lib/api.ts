@@ -191,7 +191,13 @@ export async function apiFetchSafe<T>(
 // Includes 160 so small thumbnail slots (e.g. 80px, which want ~160px on 2x
 // displays) don't download the 320w candidate — the browser picks the smallest
 // that satisfies `sizes`, cutting bytes on list/sidebar thumbnails.
-const CDN_RESIZE_WIDTHS = [160, 320, 640, 960, 1280] as const
+// Candidate widths for the responsive srcset. Denser steps in the common
+// display range (cards ~150-360 CSS px, hero ~380-600 CSS px) so the browser
+// can pick a candidate close to what it actually needs instead of jumping to
+// the next much-larger one. Example: a 595px hero at ~1.75 DPR needs ~720px —
+// with 720/800 present it picks 720 instead of 960 (Lighthouse "image larger
+// than needed" / ~19 KiB saved per hero). Larger widths stay for desktop/retina.
+const CDN_RESIZE_WIDTHS = [160, 240, 320, 480, 640, 720, 800, 960, 1280] as const
 
 // Default compression quality for the resize transform. WebP at 70 is
 // visually close to the original for news photos (faces/text stay crisp)
