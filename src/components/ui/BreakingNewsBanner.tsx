@@ -66,13 +66,27 @@ export function BreakingNewsBanner({ initialItems = [] }: { initialItems?: Break
   const catColor = categoryColors.find(c => c.slug === categorySlug)?.color || null
   const color = isDark ? null : catColor
 
-  const [enabled, setEnabled] = useState(initialItems.length > 0)
+  // Whether the banner was already present at first paint (server decided this
+  // via Layout.astro's fetchBreakingNews(), cached ~LISTING_TTL=30s). This is
+  // the ONLY thing that controls whether the bar occupies layout space, so it
+  // never changes after mount — eliminating the CLS where a bar used to pop in
+  // above the hero after the client fetch resolved.
+  const serverHadBanner = initialItems.length > 0
+  const [enabled] = useState(serverHadBanner)
 
   useEffect(() => {
+    // Only refresh the CONTENT of an already-rendered bar (keeps breaking items
+    // fresh between the ~30s CDN cache windows). We deliberately do NOT flip a
+    // hidden banner to visible here: introducing a new full-width row above the
+    // hero after paint is exactly what caused the large mobile layout shift
+    // (CLS ~0.24). When the server says "no breaking", the next cached HTML
+    // (≤30s later) will include it — no post-paint jump needed.
+    if (!serverHadBanner) return
     fetch('/api/breaking')
       .then(res => res.json())
       .then(data => {
-        // If breaking news disabled from backend
+        // If breaking news disabled from backend, leave the current bar as-is
+        // (it will disappear on the next server render). No layout change here.
         if (data?.enabled === false) {
           return
         }
@@ -84,20 +98,17 @@ export function BreakingNewsBanner({ initialItems = [] }: { initialItems?: Break
             slug: item.slug,
             category_slug: item.category?.slug || 'nasional',
           })))
-          setEnabled(true)
         }
         // Speed from API (in seconds)
         if (data?.speed) setSpeed(Number(data.speed))
       })
       .catch(() => {})
-  }, [])
+  }, [serverHadBanner])
 
   // Don't render anything if not enabled or no items
   if (!enabled || !items.length) {
     return null
   }
-
-  if (!items.length) return null
 
   return <BreakingNews items={items} color={color} speed={speed} />
 }
