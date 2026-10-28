@@ -251,14 +251,13 @@ export function stripWsrv(url: string): string {
 function buildWsrvUrl(cdnUrl: string, width: number, quality: number): string {
   // wsrv wants the source as "host/path" (no scheme).
   const noScheme = cdnUrl.replace(/^https?:\/\//, '')
-  const params = new URLSearchParams({
-    url: noScheme,
-    w: String(width),
-    output: 'webp',
-    q: String(quality),
-    we: '1',
-  })
-  return `https://wsrv.nl/?${params.toString()}`
+  // IMPORTANT: encode with encodeURIComponent, NOT URLSearchParams. The latter
+  // encodes spaces as "+", which wsrv forwards literally to the CDN origin —
+  // but object keys with spaces are stored as %20, so a "+" yields a 404 and a
+  // broken image (e.g. avatars like "... (1)-xxxx.webp"). encodeURIComponent
+  // turns spaces into %20, which the origin resolves correctly.
+  const url = encodeURIComponent(noScheme)
+  return `https://wsrv.nl/?url=${url}&w=${width}&output=webp&q=${quality}&we=1`
 }
 
 /**
