@@ -8,7 +8,7 @@
  *   usePathname, useSearchParams, useRouter, useParams, redirect, notFound,
  *   permanentRedirect, useSelectedLayoutSegment(s)
  */
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 
 const isBrowser = typeof window !== 'undefined'
 
@@ -80,7 +80,16 @@ export function useRouter(): AppRouterInstance {
     /* no-op: MPA navigation */
   }, [])
 
-  return { push, replace, refresh, back, forward, prefetch }
+  // Return a STABLE object reference. Without useMemo, useRouter() returns a
+  // fresh object literal every render, so any `useEffect(..., [router])` re-runs
+  // on every render → re-fetch → setState → re-render → infinite loop (this
+  // caused /tulis to fire thousands of /api/tags-list + /api/categories-list
+  // requests). The callbacks are already stable via useCallback, so this memo
+  // never recomputes after mount.
+  return useMemo(
+    () => ({ push, replace, refresh, back, forward, prefetch }),
+    [push, replace, refresh, back, forward, prefetch]
+  )
 }
 
 /**
