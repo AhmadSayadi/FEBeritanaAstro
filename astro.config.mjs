@@ -1,16 +1,44 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
+import node from '@astrojs/node'
 import cloudflare from '@astrojs/cloudflare'
+import vercel from '@astrojs/vercel'
 import { fileURLToPath } from 'node:url'
 
 /**
- * Beritana — Astro 7 SSR, deployed to Cloudflare Workers.
+ * Beritana — Astro 7 SSR. The deploy target is SELECTABLE via the
+ * DEPLOY_TARGET env var, so the same codebase deploys to all three without
+ * code edits:
  *
- * Single target: @astrojs/cloudflare (Workers + static assets). The build
- * emits dist/client (assets) + dist/server (worker + generated wrangler.json).
- * See wrangler.toml for the required nodejs_compat flag.
+ *   DEPLOY_TARGET=node        → @astrojs/node (standalone)  [DEFAULT]
+ *       VPS / self-hosted. `node ./dist/server/entry.mjs` (via PM2). No
+ *       per-request CPU cap — the reason we run production here: Cloudflare
+ *       Workers' free 10ms CPU/request limit can't SSR this app (sanitize-html
+ *       + React island render exceeds it → Error 1102 / 503).
+ *   DEPLOY_TARGET=cloudflare  → @astrojs/cloudflare (Workers)
+ *       Kept working for edge/CDN deploys. Needs wrangler + nodejs_compat.
+ *   DEPLOY_TARGET=vercel      → @astrojs/vercel (serverless)
+ *       Kept as a managed-serverless fallback.
+ *
+ * Build: set the env then `astro build`, e.g.
+ *   DEPLOY_TARGET=node astro build        (Linux/VPS)
+ *   $env:DEPLOY_TARGET='cloudflare'; astro build   (PowerShell)
  */
+const DEPLOY_TARGET = process.env.DEPLOY_TARGET || 'node'
+
+const adapter =
+  DEPLOY_TARGET === 'cloudflare'
+    ? cloudflare()
+    : DEPLOY_TARGET === 'vercel'
+      ? vercel()
+      : node({ mode: 'standalone' })
+
+// Cloudflare Workers has no `MessageChannel` (needed by React 19's default
+// server build), so it must use react-dom/server.edge. Node and Vercel use the
+// standard build. Apply the alias ONLY for the cloudflare target.
+const reactDomAlias =
+  DEPLOY_TARGET === 'cloudflare' ? { 'react-dom/server': 'react-dom/server.edge' } : {}
 
 export default defineConfig({
   site: 'https://beritana.com',
@@ -24,7 +52,7 @@ export default defineConfig({
   // prevents duplicate-URL indexing. `build.format: 'file'` keeps that shape.
   trailingSlash: 'never',
   build: { format: 'file' },
-  adapter: cloudflare(),
+  adapter,
   // Prefetch link targets so navigation feels instant. `hover` strategy fetches
   // the destination HTML when the user hovers/taps a link (cheap, safe for MPA).
   // Pure MPA — no View Transitions — so every URL stays a full standalone HTML
@@ -73,11 +101,8 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        // Cloudflare Workers has no `MessageChannel`, which React 19's default
-        // `react-dom/server.browser` build requires — so SSR crashes at worker
-        // startup ("MessageChannel is not defined"). The edge build
-        // (`react-dom/server.edge`) doesn't need it.
-        'react-dom/server': 'react-dom/server.edge',
+        // react-dom/server.edge ONLY when building for Cloudflare (see above).
+        ...reactDomAlias,
         // Project path alias "@/*" -> "./src/*". The former next/* compat
         // aliases are gone: components now import the local compat shims
         // directly from '@/compat/*', so there is no 'next/*' reference left.

@@ -102,25 +102,39 @@ function htmlCacheControl(pathname: string, status: number): string | null {
   return `public, max-age=0, s-maxage=${LISTING_TTL}, stale-while-revalidate=600`
 }
 
-/* ─── Edge HTML cache (Cloudflare Cache API) ────────────────────────────────
- * The site runs on the Workers FREE tier (10ms CPU/request). An uncached HTML
- * render (sanitize-html + React SSR of the page island) can exceed that budget
- * → "Worker exceeded CPU time limit" (503 / Error 1102).
+/* ─── In-process HTML cache (Node / VPS) ────────────────────────────────────
+ * On a long-lived Node process (unlike Cloudflare Workers' short-lived
+ * isolates) an in-memory cache persists across requests and is extremely
+ * effective: the heavy work (sanitize-html + React SSR of the page island)
+ * runs ONCE per URL per TTL window, and every other request is served from
+ * memory in well under a millisecond. This is what keeps a 1GB VPS responsive
+ * under crawler + reader load, and replaces the Cloudflare Cache API we used
+ * on Workers.
  *
- * The s-maxage headers alone are not enough: Workers output is NOT stored in
- * Cloudflare's traditional CDN cache, so without this the Worker re-renders on
- * essentially every request. Here we use the Workers Cache API (caches.default)
- * explicitly: a cache HIT returns the stored HTML without running any render
- * code (~0ms CPU), and a MISS renders once then stores the result for the
- * route's TTL. This is the key fix that keeps the free tier under budget.
+ * Freshness is unchanged: an entry lives for the route's TTL (LISTING_TTL=30s
+ * for listings, ARTICLE_TTL for article detail), then the next request triggers
+ * a background re-render (stale-while-revalidate) so visitors never wait.
  *
- * Guarded so it's a safe no-op in dev/Node where caches.default is absent.
+ * A reverse proxy (Nginx/Cloudflare) in front still layers its own HTTP cache
+ * via the Cache-Control headers below, so most requests never even reach Node.
  * ──────────────────────────────────────────────────────────────────────────── */
 
-/** Seconds the EDGE should keep a rendered HTML page (how long until the Worker
- *  renders it again). Mirrors the s-maxage tiers in htmlCacheControl. Returns 0
- *  for paths we must never edge-cache (private/error). */
-function edgeCacheTtl(pathname: string, status: number): number {
+interface HtmlCacheEntry {
+  body: string
+  headers: [string, string][]
+  status: number
+  expires: number // epoch ms
+  refreshing?: boolean
+}
+
+const htmlCache = new Map<string, HtmlCacheEntry>()
+// Cap entries so a crawler hitting every URL can't grow memory without bound —
+// critical on a 1GB VPS. Oldest (insertion-ordered) entries are evicted first.
+const HTML_CACHE_MAX = 400
+
+/** Seconds a rendered HTML page stays cached (time until re-render). Mirrors
+ *  the s-maxage tiers in htmlCacheControl. 0 = never cache (private/error). */
+function htmlCacheTtl(pathname: string, status: number): number {
   if (status >= 400) return 0
   if (PRIVATE_PATHS.has(pathname)) return 0
   if (pathname.startsWith('/pages/') || pathname.startsWith('/profile/')) return 600
@@ -134,35 +148,21 @@ function edgeCacheTtl(pathname: string, status: number): number {
   return LISTING_TTL
 }
 
-/** The Workers Cache API default cache, or null outside the Workers runtime. */
-function edgeCache(): Cache | null {
-  try {
-    // @ts-expect-error caches.default is a Workers runtime global, not in lib.dom
-    const c = typeof caches !== 'undefined' ? caches.default : null
-    return (c as Cache) || null
-  } catch {
-    return null
-  }
+function buildResponseFromEntry(entry: HtmlCacheEntry): Response {
+  return new Response(entry.body, {
+    status: entry.status,
+    headers: new Headers(entry.headers),
+  })
 }
 
-export const onRequest = defineMiddleware(async (context, next) => {
+/** Render the route fully, apply site headers, and (for cacheable HTML 200s)
+ *  store the result in the in-process cache. Returns the live Response. */
+async function renderAndMaybeCache(
+  context: Parameters<Parameters<typeof defineMiddleware>[0]>[0],
+  next: Parameters<Parameters<typeof defineMiddleware>[0]>[1],
+  cacheKey: string | null
+): Promise<Response> {
   const { pathname } = context.url
-  const method = context.request.method
-
-  // Edge-cache lookup — only for idempotent GET of cacheable HTML paths.
-  const cache = edgeCache()
-  const cacheable = method === 'GET' && edgeCacheTtl(pathname, 200) > 0
-  // Key the cache on the full URL via the request itself.
-  const cacheKey = context.request
-
-  if (cache && cacheable) {
-    const cached = await cache.match(cacheKey)
-    if (cached) {
-      // HIT — return stored HTML without rendering (≈0ms CPU on the Worker).
-      return cached
-    }
-  }
-
   const response = await next()
 
   // Security headers on every response.
@@ -170,15 +170,14 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (!response.headers.has(key)) response.headers.set(key, value)
   }
 
-  // AI content declaration files — explicit type + long cache (was in next.config).
+  // AI content declaration files — explicit type + long cache.
   if (pathname === '/llms.txt' || pathname === '/llms-full.txt') {
     response.headers.set('Content-Type', 'text/plain; charset=utf-8')
     response.headers.set('Cache-Control', 'public, max-age=86400, s-maxage=86400')
     return response
   }
 
-  // Only add HTML caching when the route didn't already set its own
-  // Cache-Control (XML/RSS/API endpoints manage their own TTLs).
+  // Only add HTML caching when the route didn't set its own Cache-Control.
   const contentType = response.headers.get('Content-Type') || ''
   const isHtml = contentType.includes('text/html')
   if (isHtml && !response.headers.has('Cache-Control')) {
@@ -186,33 +185,50 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (cc) response.headers.set('Cache-Control', cc)
   }
 
-  // Store a successful HTML render in the edge cache so the next request skips
-  // the Worker render entirely. Done via waitUntil so it never delays this
-  // response. We store a COPY whose Cache-Control carries s-maxage=<ttl>, which
-  // caches.default honours as its retention.
-  const ttl = edgeCacheTtl(pathname, response.status)
-  if (cache && cacheable && isHtml && response.status === 200 && ttl > 0) {
-    const toStore = response.clone()
-    const storeHeaders = new Headers(toStore.headers)
-    storeHeaders.set(
-      'Cache-Control',
-      `public, s-maxage=${ttl}, stale-while-revalidate=86400`
-    )
-    const storeResponse = new Response(toStore.body, {
-      status: toStore.status,
-      statusText: toStore.statusText,
-      headers: storeHeaders,
+  // Store a successful HTML render in the in-process cache.
+  const ttl = htmlCacheTtl(pathname, response.status)
+  if (cacheKey && isHtml && response.status === 200 && ttl > 0) {
+    // Read the body as text so we can re-serve it many times. We return a fresh
+    // Response built from that text (the original stream is consumed here).
+    const body = await response.text()
+    const headers = [...response.headers.entries()]
+    if (htmlCache.size >= HTML_CACHE_MAX) {
+      const oldest = htmlCache.keys().next().value
+      if (oldest !== undefined) htmlCache.delete(oldest)
+    }
+    htmlCache.set(cacheKey, {
+      body,
+      headers,
+      status: response.status,
+      expires: Date.now() + ttl * 1000,
     })
-    // Astro v6 (@astrojs/cloudflare): the execution context is exposed as
-    // locals.cfContext (the old locals.runtime.ctx throws if accessed). Use
-    // waitUntil so the cache write never delays the response; fall back to a
-    // fire-and-forget promise outside the Workers runtime (dev/Node).
-    const cfContext = (context.locals as { cfContext?: { waitUntil?: (p: Promise<unknown>) => void } })
-      ?.cfContext
-    const put = cache.put(cacheKey, storeResponse)
-    if (cfContext?.waitUntil) cfContext.waitUntil(put)
-    else void put
+    return new Response(body, { status: response.status, headers: new Headers(headers) })
   }
 
   return response
+}
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { pathname } = context.url
+  const method = context.request.method
+
+  // Only idempotent GETs of cacheable HTML paths use the in-process cache.
+  const cacheable = method === 'GET' && htmlCacheTtl(pathname, 200) > 0
+  const cacheKey = cacheable ? context.url.pathname + context.url.search : null
+
+  if (cacheKey) {
+    const hit = htmlCache.get(cacheKey)
+    // Fresh hit — serve instantly from memory (no render).
+    if (hit && hit.expires > Date.now()) {
+      return buildResponseFromEntry(hit)
+    }
+    // Stale/cold: fall through to render. `next()` is bound to this request and
+    // can only run once, so we render synchronously here (one render per URL per
+    // TTL window) and refresh the cache. The HTTP Cache-Control headers still
+    // let the reverse proxy (Nginx/Cloudflare) absorb the bulk of traffic with
+    // its own stale-while-revalidate, so Node renders are infrequent.
+  }
+
+  // Cold miss, stale, or non-cacheable — render now (and cache if eligible).
+  return renderAndMaybeCache(context, next, cacheKey)
 })

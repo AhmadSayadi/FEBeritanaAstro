@@ -5,18 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "start": "astro dev",
     "build": "astro build",
-    "build:cloudflare": "astro build",
-    "preview": "wrangler dev --config dist/server/wrangler.json",
-    "deploy": "astro build && wrangler deploy --config dist/server/wrangler.json",
+    "preview": "node ./dist/server/entry.mjs",
+    "start": "node ./dist/server/entry.mjs",
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^14.4.2",
+    "@astrojs/cloudflare": "^14.4.3",
+    "@astrojs/node": "11.1.9",
     "@astrojs/react": "^7.1.1",
+    "@astrojs/vercel": "11.0.17",
     "@tailwindcss/typography": "^0.5.19",
-    "sanitize-html": "^2.18.1",
     "@tiptap/extension-document": "^3.23.6",
     "@tiptap/extension-dropcursor": "^3.26.0",
     "@tiptap/extension-gapcursor": "^3.26.0",
@@ -26,7 +25,7 @@
     "@tiptap/extension-link": "^3.23.6",
     "@tiptap/extension-list": "^3.23.6",
     "@tiptap/extension-paragraph": "^3.23.6",
-    "@tiptap/extension-placeholder"   : "^3.26.0",
+    "@tiptap/extension-placeholder": "^3.26.0",
     "@tiptap/extension-text": "^3.23.6",
     "@tiptap/extension-text-align": "^3.23.6",
     "@tiptap/extension-underline": "^3.23.6",
@@ -37,7 +36,9 @@
     "@vercel/og": "^0.6.8",
     "astro": "~7.4.2",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "sanitize-html": "^2.18.1",
+    "wrangler": "^4.156.0"
   },
   "devDependencies": {
     "@types/node": "^20",
@@ -46,8 +47,7 @@
     "@types/sanitize-html": "^2.16.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5",
-    "wrangler": "^4.152.0"
+    "typescript": "^5"
   },
   "browserslist": [
     "chrome >= 111",
