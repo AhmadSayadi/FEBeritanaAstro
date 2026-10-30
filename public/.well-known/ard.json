@@ -1,0 +1,45 @@
+{
+  "@context": "https://agenticresourcediscovery.org/context/v1",
+  "entries": [
+    {
+      "identifier": "urn:air:beritana.com:content:llms-index",
+      "displayName": "Beritana — AI Content Index (llms.txt)",
+      "type": "text/plain",
+      "url": "https://beritana.com/llms.txt",
+      "description": "Machine-readable index of Beritana, an Indonesian news portal: site structure, key sections (Nasional, Politik, Olahraga, Teknologi, Ekonomi, Dunia, and more) and links for AI agents to navigate current news coverage.",
+      "capabilities": ["NewsContentIndex", "SiteNavigation"],
+      "representativeQueries": [
+        "berita terbaru dari Indonesia hari ini",
+        "cari artikel berita teknologi Indonesia",
+        "apa struktur dan kanal situs berita Beritana"
+      ],
+      "tags": ["news", "indonesia", "journalism", "content-index"]
+    },
+    {
+      "identifier": "urn:air:beritana.com:feed:rss",
+      "displayName": "Beritana — RSS Feed",
+      "type": "application/rss+xml",
+      "url": "https://beritana.com/feed.xml",
+      "description": "RSS feed of the latest news articles published by Beritana, updated continuously throughout the day.",
+      "capabilities": ["NewsFeed"],
+      "representativeQueries": [
+        "langganan berita terbaru Beritana",
+        "ambil daftar artikel terkini dalam format RSS"
+      ],
+      "tags": ["news", "rss", "feed", "indonesia"]
+    },
+    {
+      "identifier": "urn:air:beritana.com:sitemap:news",
+      "displayName": "Beritana — Google News Sitemap",
+      "type": "application/xml",
+      "url": "https://beritana.com/news-sitemap.xml",
+      "description": "Google News sitemap listing Beritana articles published in the last 48 hours, with titles, publication dates and image references for news discovery.",
+      "capabilities": ["NewsSitemap"],
+      "representativeQueries": [
+        "artikel berita Indonesia 48 jam terakhir",
+        "daftar berita terbaru beserta tanggal terbit"
+      ],
+      "tags": ["news", "sitemap", "google-news", "indonesia"]
+    }
+  ]
+}
