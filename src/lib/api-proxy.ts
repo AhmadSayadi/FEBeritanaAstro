@@ -15,6 +15,10 @@ import { env } from './env'
 const API_BASE = () => env('API_BASE_URL', 'https://cms.beritana.com/api')
 const API_KEY = () => env('API_SECRET_KEY', '')
 
+// Node's fetch sends NO User-Agent by default; LiteSpeed/ModSecurity on the
+// backend can 403 requests with an empty UA. Send an explicit one.
+const BACKEND_UA = 'BeritanaSSR/1.0 (+https://beritana.com)'
+
 function jsonResponse(data: unknown, init?: ResponseInit): Response {
   return new Response(JSON.stringify(data), {
     ...init,
@@ -37,7 +41,7 @@ export async function proxyGet(
   } = {}
 ): Promise<Response> {
   const { fallback = { data: null }, cacheControl, forwardAuth } = opts
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY(), 'User-Agent': BACKEND_UA }
   const auth = forwardAuth?.headers.get('Authorization')
   if (auth) headers['Authorization'] = auth
 
@@ -81,7 +85,7 @@ export async function proxyMethod(
   const hasBody = method !== 'DELETE'
   const body = hasBody ? await request.text() : undefined
 
-  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY() }
+  const headers: Record<string, string> = { Accept: 'application/json', 'X-API-Key': API_KEY(), 'User-Agent': BACKEND_UA }
   if (hasBody) headers['Content-Type'] = 'application/json'
   if (authHeader) headers['Authorization'] = authHeader
 

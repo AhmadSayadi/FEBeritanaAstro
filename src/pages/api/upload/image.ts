@@ -17,7 +17,14 @@ export const POST: APIRoute = async ({ request }) => {
 
     const res = await fetch(`${API_BASE()}/upload/image`, {
       method: 'POST',
-      headers: { Accept: 'application/json', 'X-API-Key': API_KEY(), Authorization: authHeader },
+      headers: {
+        Accept: 'application/json',
+        'X-API-Key': API_KEY(),
+        Authorization: authHeader,
+        // Node's fetch sends no default User-Agent; some LiteSpeed/ModSecurity
+        // rules 403 requests with an empty UA. Identify as our server.
+        'User-Agent': 'BeritanaSSR/1.0 (+https://beritana.com)',
+      },
       body: outgoingForm,
     })
     const data = await res.json().catch(() => ({}))

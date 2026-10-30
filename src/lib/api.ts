@@ -108,6 +108,9 @@ async function fetchJson<T>(url: string, timeoutMs: number): Promise<T> {
       Accept: 'application/json',
       'Content-Type': 'application/json',
       'X-API-Key': API_KEY(),
+      // Node fetch has no default UA; backend LiteSpeed/ModSecurity may 403 an
+      // empty UA. Identify our SSR server explicitly.
+      'User-Agent': 'BeritanaSSR/1.0 (+https://beritana.com)',
     },
     signal: AbortSignal.timeout(timeoutMs),
   })
