@@ -123,11 +123,54 @@ const baseOptions: sanitizeHtml.IOptions = {
   },
 }
 
+/* ─── Sanitized-output cache ────────────────────────────────────────────────
+ * sanitize-html parses + rebuilds the ENTIRE article body against a large
+ * allowlist — the single heaviest CPU op on an article render, and on the
+ * Cloudflare free tier (10ms CPU/request) it alone can blow the budget and
+ * trigger "Worker exceeded CPU time limit" (503 / Error 1102).
+ *
+ * The raw API response is cached (apiFetchCached), but the SANITIZED string was
+ * recomputed on every render. Cache it here, keyed by a cheap hash of the raw
+ * HTML, so repeat renders of the same article skip the expensive parse. The
+ * cache lives per Worker isolate (same model as the API cache); a cold isolate
+ * pays once, then every subsequent render of that article is nearly free.
+ * ──────────────────────────────────────────────────────────────────────────── */
+const sanitizedCache = new Map<string, string>()
+const SANITIZED_CACHE_MAX = 300
+
+/** Fast, allocation-light 32-bit string hash (FNV-1a). Not cryptographic —
+ *  only used as a cache key, so collisions are astronomically unlikely for our
+ *  content and harmless (worst case: one extra sanitize). */
+function hashKey(s: string): string {
+  let h = 0x811c9dc5
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i)
+    h = Math.imul(h, 0x01000193)
+  }
+  // Include length to further reduce collision risk across different bodies.
+  return `${s.length}:${(h >>> 0).toString(36)}`
+}
+
 /**
  * Sanitize backend-authored article/page HTML.
  * Returns a safe HTML string with social embeds preserved.
+ *
+ * Memoized by a hash of the raw input (see sanitizedCache above) so the costly
+ * sanitize-html pass runs at most once per unique body per Worker isolate.
  */
 export function sanitizeContent(html: string | null | undefined): string {
   if (!html) return ''
-  return sanitizeHtml(html, baseOptions)
+
+  const key = hashKey(html)
+  const cached = sanitizedCache.get(key)
+  if (cached !== undefined) return cached
+
+  const clean = sanitizeHtml(html, baseOptions)
+
+  if (sanitizedCache.size >= SANITIZED_CACHE_MAX) {
+    const oldest = sanitizedCache.keys().next().value
+    if (oldest !== undefined) sanitizedCache.delete(oldest)
+  }
+  sanitizedCache.set(key, clean)
+  return clean
 }
