@@ -18,6 +18,15 @@ import { defineMiddleware } from 'astro:middleware'
 
 import { LISTING_TTL, ARTICLE_TTL } from '@/lib/env'
 
+// HTTPS-only enforcement (HSTS + CSP's upgrade-insecure-requests) is CORRECT in
+// production (served over https://beritana.com) but BREAKS plain-HTTP testing
+// via an IP:port — the browser force-upgrades every asset to https, which the
+// Node server doesn't speak, so CSS/JS fail with ERR_SSL_PROTOCOL_ERROR. Set
+// DISABLE_HTTPS_UPGRADE=true (in .env) only while testing over http://<ip> to
+// drop both; leave it UNSET in production so HSTS stays on.
+const DISABLE_HTTPS_UPGRADE =
+  (process.env.DISABLE_HTTPS_UPGRADE || '').toLowerCase() === 'true'
+
 const CSP = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com https://pagead2.googlesyndication.com https://adservice.google.com https://tpc.googlesyndication.com https://www.instagram.com https://platform.twitter.com https://www.tiktok.com https://connect.facebook.net https://www.threads.net https://www.youtube.com https://news.google.com https://*.adtrafficquality.google https://static.cloudflareinsights.com",
@@ -30,7 +39,8 @@ const CSP = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'self'",
-  'upgrade-insecure-requests',
+  // Only force-upgrade assets to https when NOT in http-test mode.
+  ...(DISABLE_HTTPS_UPGRADE ? [] : ['upgrade-insecure-requests']),
 ].join('; ')
 
 const SECURITY_HEADERS: Record<string, string> = {
@@ -39,7 +49,11 @@ const SECURITY_HEADERS: Record<string, string> = {
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-  'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload',
+  // HSTS omitted in http-test mode (it's what pins the browser to https for the
+  // bare IP and causes ERR_SSL_PROTOCOL_ERROR on subsequent visits).
+  ...(DISABLE_HTTPS_UPGRADE
+    ? {}
+    : { 'Strict-Transport-Security': 'max-age=63072000; includeSubDomains; preload' }),
   'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
   Link: '</llms.txt>; rel="ai-content-declaration", </llms-full.txt>; rel="ai-content-declaration-full"',
   'Content-Security-Policy': CSP,
