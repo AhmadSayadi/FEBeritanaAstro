@@ -11,7 +11,7 @@ import Layout from '@/layouts/Layout.astro'
 import { fetchArticleFull } from '@/lib/data'
 import { getImageUrl } from '@/lib/api'
 import { buildArticleSeo } from '@/lib/seo'
-import { buildNewsArticleSchema, buildBreadcrumbSchema, buildFaqSchema } from '@/lib/schema'
+import { buildNewsArticleSchema, buildBreadcrumbSchema, buildFaqSchema, buildWebsiteSchema } from '@/lib/schema'
 import { SITE_URL_RAW } from '@/lib/env'
 import JsonLd from '@/components/astro/JsonLd.astro'
 import { Breadcrumb } from '@/components/layout/Breadcrumb'
@@ -44,13 +44,19 @@ const seo = buildArticleSeo(article)
 let articleSchema: object | null = null
 let breadcrumbSchema: object | null = null
 let faqSchema: object | null = null
+let websiteSchema: object | null = null
 try {
   articleSchema = buildNewsArticleSchema(article)
   breadcrumbSchema = buildBreadcrumbSchema([
     { name: 'Beranda', url: siteUrl },
     { name: article.category?.name || 'Berita', url: `${siteUrl}/${article.category?.slug || 'berita'}` },
+    // 3rd item — the article itself (required for a complete BreadcrumbList)
+    { name: article.title, url: `${siteUrl}/${article.category?.slug || 'berita'}/${article.slug}` },
   ])
   faqSchema = article.faqs && article.faqs.length > 0 ? buildFaqSchema(article.faqs) : null
+  // Emit WebSite schema so the NewsArticle's isPartOf #website reference resolves
+  // on article pages (not only on the homepage where buildWebsiteSchema normally lives).
+  websiteSchema = buildWebsiteSchema()
 } catch (e) {
   console.error('[article] JSON-LD build failed (canonical still emitted):', e)
 }
@@ -64,7 +70,7 @@ const heroImageUrl = getImageUrl(article.thumbnail_url, { width: 1200 })
     )}
   </Fragment>
 
-  <JsonLd schema={[articleSchema, breadcrumbSchema, faqSchema]} />
+  <JsonLd schema={[websiteSchema, articleSchema, breadcrumbSchema, faqSchema]} />
 
   {/* Breadcrumb — static server HTML (no JS). */}
   <Breadcrumb

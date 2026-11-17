@@ -43,8 +43,7 @@ export function buildNewsArticleSchema(article: Article) {
     headline: article.title.slice(0, 110),
     description: article.excerpt,
     datePublished: article.published_at,
-    // dateModified wajib ada untuk Google News — fallback ke published_at bila BE tak kirim
-    dateModified: article.updated_at || article.published_at,
+    dateModified: article.modified_at || article.updated_at || article.published_at,
     url: `${SITE_URL}/${categorySlug}/${article.slug}`,
     mainEntityOfPage: {
       '@type': 'WebPage',
@@ -63,8 +62,9 @@ export function buildNewsArticleSchema(article: Article) {
     },
     image: {
       '@type': 'ImageObject',
-      // Absolute CDN URL — required for Google Discover / Top Stories
-      url: getImageUrl(article.thumbnail_url, { width: 1200 }),
+      // Absolute CDN URL — required for Google Discover / Top Stories.
+      // Prefer og_image_path when the backend supplies a dedicated OG crop.
+      url: getImageUrl(article.og_image_path || article.thumbnail_url, { width: 1200 }),
       width: 1200,
       height: 630,
       caption: article.thumbnail_alt || article.title,
@@ -84,6 +84,15 @@ export function buildNewsArticleSchema(article: Article) {
     timeRequired: readingTime ? `PT${readingTime}M` : undefined,
     inLanguage: 'id',
     isAccessibleForFree: true,
+    // isBasedOn — model sumber asli untuk artikel adaptasi/sindikasi.
+    // Hanya ada ketika backend mengirim source_url.
+    ...(article.source_url ? {
+      isBasedOn: {
+        '@type': 'CreativeWork',
+        url: article.source_url,
+        ...(article.source_name ? { name: article.source_name } : {}),
+      },
+    } : {}),
     // Speakable — for Google Assistant voice reading (matches TTS feature)
     speakable: {
       '@type': 'SpeakableSpecification',

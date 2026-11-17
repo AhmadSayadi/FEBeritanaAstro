@@ -117,7 +117,9 @@ const socialDescription = ogDescription || description
 
 {/* Twitter */}
 <meta name="twitter:card" content={twitterCard} />
+<meta name="twitter:site" content="@beritanacom" />
 {socialTitle && <meta name="twitter:title" content={socialTitle} />}
 {socialDescription && <meta name="twitter:description" content={socialDescription} />}
 {twitterCreator && <meta name="twitter:creator" content={twitterCreator} />}
 {imageURL && <meta name="twitter:image" content={imageURL} />}
+{imageURL && image?.alt && <meta name="twitter:image:alt" content={image.alt} />}

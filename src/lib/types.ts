@@ -24,6 +24,14 @@ export interface Article {
   updated_at: string
   reading_time?: number
 
+  // Content type & editorial flags
+  content_type?: 'berita' | 'analisis' | 'opini' | 'adaptasi' | 'advertorial' | 'kreatif'
+  source_name?: string        // nama sumber asli (wajib jika content_type = adaptasi)
+  source_url?: string         // URL sumber asli (untuk isBasedOn + label atribusi)
+  modified_at?: string        // waktu edit terakhir ISO 8601 +07:00; fallback ke updated_at
+  fact_checked_by?: { id: number; name: string; slug: string } | null
+  fact_checked_at?: string | null
+
   // Stats (returned by list & detail)
   views?: number
   likes_count?: number
@@ -54,6 +62,11 @@ export interface Article {
 
   // SEO
   url_canonical?: string
+  seo_title?: string          // override judul untuk <title>/<og:title> (maks 60 char)
+  meta_description?: string   // override deskripsi meta (maks 160 char)
+  og_image_path?: string      // custom OG image (jika berbeda dari thumbnail_url)
+  noindex?: boolean           // true → kirim meta robots noindex
+  ai_assisted?: boolean       // tampilkan label "AI Assisted" di byline
 }
 
 // ───────────────── Author ─────────────────
