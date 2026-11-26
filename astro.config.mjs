@@ -97,6 +97,9 @@ export default defineConfig({
     define: {
       // Expose PUBLIC_* vars to client bundles (Next inlined these at build time).
       // Server code still reads process.env directly via loadEnv below.
+      // Baked in so middleware's CSP always allows exactly the asset origin the
+      // built HTML points at (see build.assetsPrefix above).
+      'process.env.ASSETS_PREFIX': JSON.stringify(ASSETS_PREFIX),
       'process.env.PUBLIC_SITE_URL': JSON.stringify(process.env.PUBLIC_SITE_URL || 'https://beritana.com'),
       'process.env.PUBLIC_SITE_NAME': JSON.stringify(process.env.PUBLIC_SITE_NAME || 'Beritana'),
       'process.env.PUBLIC_API_BASE_URL': JSON.stringify(process.env.PUBLIC_API_BASE_URL || 'https://cms.beritana.com/api'),
