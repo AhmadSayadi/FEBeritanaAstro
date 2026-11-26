@@ -31,8 +31,15 @@ const procEnv: EnvRecord =
   typeof process !== 'undefined' && process.env ? (process.env as EnvRecord) : {}
 
 export function env(key: string, fallback = ''): string {
-  const v = viteEnv[key] ?? procEnv[key]
-  return v === undefined || v === null ? fallback : String(v)
+  // Runtime process.env wins over build-time values, and empty strings count
+  // as missing. Otherwise a value baked in empty at build time (e.g. built
+  // before .env existed) would shadow the real runtime secret forever.
+  const isSet = (v: string | undefined) => v !== undefined && v !== null && v !== ''
+  const p = procEnv[key]
+  if (isSet(p)) return String(p)
+  const v = viteEnv[key]
+  if (isSet(v)) return String(v)
+  return fallback
 }
 
 // Commonly used values, resolved once.

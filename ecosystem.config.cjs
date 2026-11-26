@@ -24,7 +24,10 @@ module.exports = {
       exec_mode: 'fork',
       instances: 1,
       // Cap V8 heap (MB). Leaves headroom for the OS + Nginx on a 1GB box.
-      node_args: '--max-old-space-size=512',
+      // --env-file loads .env into process.env at startup (Node >= 20.6).
+      // Node does not read .env on its own, so without it API_SECRET_KEY is
+      // empty at runtime and every backend call returns 401.
+      node_args: '--max-old-space-size=512 --env-file=.env',
       // If the process grows past this, PM2 restarts it (safety net against OOM).
       max_memory_restart: '600M',
       env: {
