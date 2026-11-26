@@ -77,6 +77,8 @@ const isOn = (key: string) => {
 }
 export const ENABLE_ADS = isOn('PUBLIC_ENABLE_ADS')
 export const ENABLE_LIVE_EVENT = isOn('PUBLIC_ENABLE_LIVE_EVENT')
+// "Dilansir dari <source>" line under the article byline. Default OFF.
+export const ENABLE_SOURCE_ATTRIBUTION = isOn('PUBLIC_ENABLE_SOURCE_ATTRIBUTION')
 
 // CDN cache TTLs (seconds) for the middleware Cache-Control headers. Tunable via
 // env so freshness can be adjusted WITHOUT a code change — just update the var

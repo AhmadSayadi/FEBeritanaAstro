@@ -5,6 +5,7 @@ import { getImageUrl, getBlurProps } from '@/lib/api'
 import { formatBylineDateTimeID } from '@/lib/date'
 import { TraktirButton } from '@/components/article/ArticleClientComponents'
 import { getContentTypeMeta } from '@/lib/contentType'
+import { ENABLE_SOURCE_ATTRIBUTION } from '@/lib/env'
 
 interface ArticleHeaderProps {
   article: Article
@@ -101,8 +102,9 @@ export function ArticleHeader({ article }: ArticleHeaderProps) {
         <TraktirButton article={article} />
       </div>
 
-      {/* ── Atribusi sumber (hanya untuk content_type = adaptasi atau bila ada source_url) ── */}
-      {(article.source_url || article.source_name) && (
+      {/* ── Atribusi sumber (hanya untuk content_type = adaptasi atau bila ada source_url) ──
+          On/off via PUBLIC_ENABLE_SOURCE_ATTRIBUTION (default off). */}
+      {ENABLE_SOURCE_ATTRIBUTION && (article.source_url || article.source_name) && (
         <p className="mt-3 text-xs text-gray-500 dark:text-gray-400 border-l-2 border-gray-200 dark:border-gray-700 pl-3">
           Dilansir dari{' '}
           {article.source_url ? (

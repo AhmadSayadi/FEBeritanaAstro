@@ -50,6 +50,7 @@ PUBLIC_IMG_RESIZE_PROVIDER = "wsrv"
 # Feature toggles — set to "true" to render again (no code change needed).
 PUBLIC_ENABLE_ADS = "false"
 PUBLIC_ENABLE_LIVE_EVENT = "false"
+PUBLIC_ENABLE_SOURCE_ATTRIBUTION = "false"
 # CDN cache freshness (seconds). Change here + redeploy to tune without touching
 # code. LISTING_TTL = homepage/category/tag etc; lower = fresher but more Worker
 # runs (free-tier budget). ARTICLE_TTL = article detail pages.

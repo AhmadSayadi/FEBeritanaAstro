@@ -108,6 +108,7 @@ export default defineConfig({
       'process.env.PUBLIC_IMG_RESIZE_PROVIDER': JSON.stringify(process.env.PUBLIC_IMG_RESIZE_PROVIDER || ''),
       'process.env.PUBLIC_ENABLE_ADS': JSON.stringify(process.env.PUBLIC_ENABLE_ADS || ''),
       'process.env.PUBLIC_ENABLE_LIVE_EVENT': JSON.stringify(process.env.PUBLIC_ENABLE_LIVE_EVENT || ''),
+      'process.env.PUBLIC_ENABLE_SOURCE_ATTRIBUTION': JSON.stringify(process.env.PUBLIC_ENABLE_SOURCE_ATTRIBUTION || ''),
       'process.env.PUBLIC_GA_ID': JSON.stringify(process.env.PUBLIC_GA_ID || ''),
       'process.env.PUBLIC_ADSENSE_ID': JSON.stringify(process.env.PUBLIC_ADSENSE_ID || ''),
       'process.env.PUBLIC_GTM_ID': JSON.stringify(process.env.PUBLIC_GTM_ID || ''),
