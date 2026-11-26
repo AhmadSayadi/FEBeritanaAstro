@@ -29,7 +29,7 @@ module.exports = {
       max_memory_restart: '600M',
       env: {
         NODE_ENV: 'production',
-        HOST: '127.0.0.1',
+        HOST: '0.0.0.0',
         PORT: '20166',
       },
       // Restart policy
