@@ -5,6 +5,7 @@ import node from '@astrojs/node'
 import cloudflare from '@astrojs/cloudflare'
 import vercel from '@astrojs/vercel'
 import { fileURLToPath } from 'node:url'
+import { loadEnv } from 'vite'
 
 /**
  * Beritana — Astro 7 SSR. The deploy target is SELECTABLE via the
@@ -26,6 +27,15 @@ import { fileURLToPath } from 'node:url'
  *   $env:DEPLOY_TARGET='cloudflare'; astro build   (PowerShell)
  */
 const DEPLOY_TARGET = process.env.DEPLOY_TARGET || 'node'
+
+// Optional CDN origin for the built /_astro/* files (JS, CSS, fonts), e.g.
+// ASSETS_PREFIX=https://assets.beritana.com. When set, the HTML references
+// those files on the CDN, so they MUST be uploaded first (scripts/upload-assets.sh,
+// called by deploy.sh). Empty = served from the site itself, as before.
+// Read from the shell env or .env, because Astro config runs before Vite
+// loads .env into process.env.
+const fileEnv = loadEnv(process.env.NODE_ENV || 'production', process.cwd(), '')
+const ASSETS_PREFIX = (process.env.ASSETS_PREFIX || fileEnv.ASSETS_PREFIX || '').replace(/\/$/, '')
 
 const adapter =
   DEPLOY_TARGET === 'cloudflare'
@@ -51,7 +61,10 @@ export default defineConfig({
   // (/world, not /world/) — matches every canonical/sitemap URL we emit and
   // prevents duplicate-URL indexing. `build.format: 'file'` keeps that shape.
   trailingSlash: 'never',
-  build: { format: 'file' },
+  build: {
+    format: 'file',
+    ...(ASSETS_PREFIX ? { assetsPrefix: ASSETS_PREFIX } : {}),
+  },
   adapter,
   // Prefetch link targets so navigation feels instant. `hover` strategy fetches
   // the destination HTML when the user hovers/taps a link (cheap, safe for MPA).
