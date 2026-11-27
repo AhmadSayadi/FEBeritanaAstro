@@ -220,11 +220,16 @@ export async function getSiteConfig(): Promise<SiteConfig> {
       headers: {
         'Accept': 'application/json',
         'X-API-Key': apiKey,
+        // Same explicit UA as apiFetchCached: backend LiteSpeed/ModSecurity
+        // may reject Node's default UA.
+        'User-Agent': 'BeritanaSSR/1.0 (+https://beritana.com)',
       },
-      signal: AbortSignal.timeout(3000),
+      // 5s like the other SSR backend calls; 3s was too tight from the VPS and
+      // silently fell back to the 3-item default menu.
+      signal: AbortSignal.timeout(5000),
     })
 
-    if (!res.ok) throw new Error('Failed')
+    if (!res.ok) throw new Error(`API Error ${res.status}: ${res.statusText}`)
 
     const data = await res.json()
     const config: SiteConfig = { ...defaultConfig, ...data.data }
@@ -239,8 +244,10 @@ export async function getSiteConfig(): Promise<SiteConfig> {
     cachedConfig = config
     cacheTime = Date.now()
     return config
-  } catch {
-    return defaultConfig
+  } catch (err) {
+    console.error('[site-config] GET /settings failed, using default menu/config:', err)
+    // Keep serving the last good backend config rather than the bare default.
+    return cachedConfig || defaultConfig
   }
 }
 

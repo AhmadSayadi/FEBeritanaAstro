@@ -31,6 +31,7 @@ export async function apiFetch<T>(
       'Accept': 'application/json',
       'Content-Type': 'application/json',
       'X-API-Key': API_KEY(),
+      'User-Agent': 'BeritanaSSR/1.0 (+https://beritana.com)',
       ...(options.headers || {}),
     },
   })
